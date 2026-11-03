@@ -27,6 +27,11 @@ try {
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('http://127.0.0.1:4173/');
   await page.locator('canvas').waitFor();
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector('canvas')?.getBoundingClientRect();
+    const map = document.querySelector('#map')?.getBoundingClientRect();
+    return canvas && map && Math.abs(canvas.width - map.width) < 2;
+  });
   const leadInSeconds = (Date.now() - recordingStarted) / 1000;
   const video = page.video()!;
   const recorded: { scene: number; duration: number; voiceDuration: number }[] = [];

@@ -69,7 +69,20 @@ try {
     [1920, 1080],
   ]) {
     await page.setViewportSize({ width, height });
-    await page.waitForTimeout(120);
+    await page.waitForFunction(
+      () => {
+        const canvas = document.querySelector('canvas')?.getBoundingClientRect();
+        const map = document.querySelector('#map')?.getBoundingClientRect();
+        return (
+          canvas &&
+          map &&
+          Math.abs(canvas.width - map.width) < 2 &&
+          Math.abs(canvas.height - map.height) < 2
+        );
+      },
+      undefined,
+      { timeout: 15000 },
+    );
     const layout = await page.evaluate(() => {
       const rect = (s: string) => {
         const b = document.querySelector(s)!.getBoundingClientRect();
@@ -100,6 +113,9 @@ try {
   assert.equal((await saved()).budget, 700);
   await page.locator('#build').click();
   assert.equal((await saved()).budget, 666);
+  assert.match(await page.locator('#selection').innerText(), /Работа выполнена/);
+  assert.equal(await page.locator('#build').count(), 0);
+  checks.push('Successful construction shows confirmation without a false placement error');
   await page.locator('#undo').click();
   assert.equal((await saved()).budget, 700);
   checks.push('Preview is free, build charges correct cost, undo refunds');

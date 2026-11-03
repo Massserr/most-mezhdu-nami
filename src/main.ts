@@ -48,6 +48,7 @@ let storageWarning = '',
   panel: 'today' | 'people' = 'today',
   residentId = 'misha';
 let toastTimer: ReturnType<typeof setTimeout>;
+let buildFeedback = '';
 let volume = 0;
 try {
   volume = Math.min(1, Math.max(0, Number(localStorage.getItem('berezovka-volume')) || 0));
@@ -172,6 +173,7 @@ function showMenu() {
   (readSave() ? $('continue') : $('new-game')).focus();
 }
 function begin(next: GameState) {
+  buildFeedback = '';
   state = next;
   playing = true;
   mode = null;
@@ -194,6 +196,7 @@ function begin(next: GameState) {
 }
 function selectCell(x: number, y: number) {
   if (!playing) return;
+  buildFeedback = '';
   selected = { x, y };
   const building = BUILDINGS.find((b) => b.x === x && b.y === y);
   if (building && !mode) {
@@ -205,6 +208,7 @@ function selectCell(x: number, y: number) {
 }
 function chooseTool(action: Action) {
   if (!playing || state.finished) return;
+  buildFeedback = '';
   mode = mode === action ? null : action;
   if (mode && state.tutorialStep === 0) state.tutorialStep = 1;
   render();
@@ -212,6 +216,7 @@ function chooseTool(action: Action) {
 function build() {
   if (!playing || state.finished || !mode || !selected) return;
   const result = applyAction(state, mode, selected.x, selected.y);
+  buildFeedback = result.ok ? result.message : '';
   toast(result.message);
   if (result.ok) {
     state.tutorialStep = Math.max(state.tutorialStep, 3);
@@ -291,7 +296,11 @@ function render() {
       b.disabled = !playing || state.finished;
     });
   const preview = selected && mode ? previewAction(state, mode, selected.x, selected.y) : null;
-  if (preview && mode && selected) {
+  if (preview && mode && selected && buildFeedback) {
+    $('selection').className = 'selection valid';
+    $('selection').innerHTML =
+      `<div><b class="positive">✓ Работа выполнена · ${selected.x + 1}:${selected.y + 1}</b><p>${esc(buildFeedback)} Выберите следующий участок или отмените действие.</p></div>`;
+  } else if (preview && mode && selected) {
     const delta = preview.metrics ? preview.metrics.connected - m.connected : 0;
     const timeGain =
       preview.metrics?.averageTime !== null &&
@@ -301,7 +310,7 @@ function render() {
         : 0;
     $('selection').className = `selection ${preview.valid ? 'valid' : 'invalid'}`;
     $('selection').innerHTML =
-      `<div><b>${ACTION_LABELS[mode]} · ${selected.x + 1}:${selected.y + 1}</b><p>${esc(preview.reason)}${preview.valid ? ` · ${delta > 0 ? `+${delta} доступных путей` : timeGain > 0.01 ? `среднее время −${timeGain.toFixed(1)}` : 'Связность и время пока не изменятся'}` : ''}</p>${preview.tasksReady.length ? `<small class="positive">Станет готово: ${preview.tasksReady.map(esc).join(', ')}</small>` : ''}</div><button id="build" class="primary compact" ${preview.valid ? '' : 'disabled'}>${mode === 'reinforce' ? 'Укрепить' : mode === 'repair' ? 'Починить' : 'Строить'} · ${preview.cost}</button>`;
+      `<div><b>${ACTION_LABELS[mode]} · ${selected.x + 1}:${selected.y + 1}</b><p>${esc(preview.reason)}${preview.valid ? ` · ${delta > 0 ? `+${delta} доступных путей` : timeGain > 0.01 ? `среднее время −${timeGain.toFixed(1)}` : 'Связность и время пока не изменятся'}` : ''}</p>${preview.tasksReady.length ? `<small class="positive">Станет готово: ${preview.tasksReady.map(esc).join(', ')}</small>` : ''}</div><button id="build" class="primary compact" ${preview.valid ? '' : 'disabled'}>${preview.valid ? `${mode === 'reinforce' ? 'Укрепить' : mode === 'repair' ? 'Починить' : 'Строить'} · ${preview.cost}` : 'Недоступно'}</button>`;
   } else {
     const building = selected
       ? BUILDINGS.find((b) => b.x === selected!.x && b.y === selected!.y)
@@ -325,7 +334,7 @@ function render() {
     state,
     playing ? route.path : [],
     selected,
-    preview && selected ? { ...selected, valid: preview.valid } : null,
+    preview && selected && !buildFeedback ? { ...selected, valid: preview.valid } : null,
     playing && state.tutorialStep < 3 ? { x: 17, y: 3 } : null,
   );
 }
@@ -361,6 +370,7 @@ function confirmDay() {
 }
 function advanceDay() {
   if (!playing || state.finished) return;
+  buildFeedback = '';
   const report = endDay(state);
   mode = null;
   selected = null;
@@ -456,6 +466,7 @@ document.addEventListener('click', (event) => {
       break;
     case 'undo':
       if (playing && undo(state)) {
+        buildFeedback = '';
         save();
         render();
         playCue('undo');
@@ -551,6 +562,7 @@ document.addEventListener('keydown', (event) => {
   if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
     event.preventDefault();
     if (undo(state)) {
+      buildFeedback = '';
       save();
       render();
       playCue('undo');
