@@ -20,7 +20,9 @@ duration=sum(targets)
 if duration>=179:
     raise SystemExit(f'Recording too long ({duration:.2f}s); shorten scene holds before mixing.')
 raw_duration=float(subprocess.check_output(['ffprobe','-v','error','-show_entries','format=duration','-of','default=noprint_wrappers=1:nokey=1',str(raw)]))
-lead=max(0,raw_duration-recording_duration-.15)
+metadata=json.loads((work/'demo-recording/video-metadata.json').read_text())
+# Final screenshots and recorder flush are tail time, not an initial blank frame.
+lead=max(0,min(metadata['leadInSeconds'],raw_duration-recording_duration-.15))
 command=['ffmpeg','-hide_banner','-loglevel','warning','-y','-ss',str(lead),'-i',str(raw)]
 for i in range(1,8):command+=['-i',str(work/f'voice/{i:02}.aiff')]
 filters=['[0:v]split=7'+''.join(f'[source{i}]' for i in range(1,8))]
