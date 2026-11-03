@@ -1,0 +1,13 @@
+{
+  "name": "most-mezhdu-nami",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "tsc --noEmit && vite build",
+    "test": "node --experimental-strip-types --test tests/*.test.ts"
+  },
+  "dependencies": { "phaser": "3.90.0" },
+  "devDependencies": { "typescript": "~5.8.3", "vite": "~6.3.5" }
+}
