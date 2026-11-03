@@ -1,0 +1,8 @@
+node_modules/
+docs/
+release/
+*.zip
+tmp/
+.env
+.env.*
+!.env.example
