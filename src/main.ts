@@ -1,55 +1,590 @@
 import './style.css';
-import { createGame, BUILDINGS, getMetrics, getTasks, getRoute, getTile, previewAction, applyAction, undo, endDay, getScore, serialize, deserialize, getAdvisor, getWeather } from './core/index.ts';
-import type { GameState } from './core/index.ts';
+import {
+  ACTION_LABELS,
+  BUILDINGS,
+  COSTS,
+  DAYS,
+  INITIAL_BUDGET,
+  LEGACY_SAVE_KEY,
+  SAVE_KEY,
+  TASKS,
+  activeBridges,
+  applyAction,
+  createGame,
+  deserialize,
+  endDay,
+  explainRoute,
+  getAdvisor,
+  getEnding,
+  getMetrics,
+  getResidentViews,
+  getRoute,
+  getScore,
+  getTasks,
+  getTile,
+  getWeather,
+  previewAction,
+  serialize,
+  undo,
+} from './core/index.ts';
+import type { Action, GameState, Point } from './core/index.ts';
 import { createMap } from './render/MapView.ts';
+import { playCue, setVolume } from './audio.ts';
 
-type Action = 'dirt'|'asphalt'|'bridge'|'repair';
-const $ = (id:string) => document.getElementById(id)!;
-const key = 'berezovka-save-v1';
-let state:GameState = createGame();
-let mode:Action|null=null, selected:{x:number,y:number}|null=null;
-let home=BUILDINGS.find(b=>b.kind==='home')!.id;
-let service=BUILDINGS.find(b=>b.kind==='school')!.id;
-let playing=false, sound=false, storageWarning='';
-const names:Record<Action,string>={dirt:'Грунтовая дорога',asphalt:'Асфальтовая дорога',bridge:'Мост через реку',repair:'Ремонт'};
-const esc=(s:unknown)=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
-function readSave(){try {return deserialize(localStorage.getItem(key)||'');} catch{return null;}}
-function save(){try{localStorage.setItem(key,serialize(state));storageWarning='';}catch{storageWarning='Браузер запретил сохранение. Не закрывайте игру до конца партии.';}}
-function chime(){if(!sound)return;try{const c=new AudioContext();const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.setValueAtTime(520,c.currentTime);o.frequency.exponentialRampToValueAtTime(780,c.currentTime+.12);g.gain.setValueAtTime(.04,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.25);o.connect(g).connect(c.destination);o.start();o.stop(c.currentTime+.25);o.onended=()=>void c.close();}catch{}}
-document.querySelector('#app')!.innerHTML=`
- <header class="topbar"><button id="brand" class="brand" title="Главное меню"><span class="brand-icon">≋</span><span>МОСТ МЕЖДУ НАМИ<small>Берёзовка · программа благоустройства</small></span></button><div class="top-actions"><span id="save-status">Локальная игра · без интернета</span><button id="sound" class="icon-button" title="Включить звуки">Звук: выкл.</button><button id="help" class="icon-button" title="Правила игры">?</button><button id="menu-button" class="icon-button">Меню</button></div></header>
- <main class="layout"><section class="world"><div class="world-top"><div><span class="eyebrow">Там, где важен каждый путь</span><h1>Берёзовка <span> / план развития</span></h1></div><div class="day-badge" id="day"></div></div><div class="stats" id="stats"></div><div class="map-frame"><div id="map"></div><div class="map-caption"><span><i class="dot"></i> Живая карта поселения</span><span id="weather"></span></div></div><div class="map-bottom"><span id="hover-note">Выберите дом, чтобы увидеть путь до школы, медпункта или пожарной части.</span><span>24 × 16 · вид сверху</span></div><section class="build-panel"><div class="section-label"><span>Благоустройство</span><button id="undo" class="text-button">↶ Отменить действие</button></div><div class="tools" id="tools"></div><div id="selection" class="selection"></div></section></section>
- <aside><section class="mission-intro"><span class="eyebrow">Семь дней, чтобы стать ближе</span><h2>Дороги для людей</h2><p>Соедините берега. Помогите детям добраться до школы, а помощи — прийти вовремя.</p></section><section class="tasks-panel"><div class="section-label"><span>Обещания жителям</span><span id="task-count"></span></div><div id="tasks"></div></section><section class="route-panel"><span class="eyebrow">Проверить маршрут</span><label for="home">Откуда</label><select id="home">${BUILDINGS.filter(b=>b.kind==='home').map(b=>`<option value="${b.id}">${esc(b.name)}</option>`).join('')}</select><div class="service-tabs" id="services">${BUILDINGS.filter(b=>b.kind!=='home').map(b=>`<button data-service="${b.id}">${b.kind==='school'?'Школа':b.kind==='clinic'?'Медпункт':'Пожарная'}</button>`).join('')}</div><div id="route-info"></div></section><section class="advisor"><span>✦ СОВЕТНИК</span><p id="advisor"></p></section><button id="end-day" class="primary end-day">Завершить день <span>→</span></button><p class="autosave">Автосохранение после каждого решения</p></aside></main><footer>Мост между нами <span>Небольшие решения. Большие перемены.</span><button id="about" class="text-button">Об игре</button></footer>
- <div id="menu" class="menu-overlay"><div class="menu-card"><span class="eyebrow">Добро пожаловать в Берёзовку</span><div class="menu-mark">≋</div><h2>Мост<br>между нами<span>.</span></h2><p>У каждого пути есть своя история.<br>Постройте те, что соединяют людей.</p><div class="menu-facts"><span>7 игровых дней</span><span>1 поселение</span><span>Ваши решения</span></div><button id="new-game" class="primary">Новая игра <span>→</span></button><button id="continue" class="secondary">Продолжить</button><button id="menu-help" class="text-button">Как играть</button><p class="menu-foot">Стратегия о заботе, соседстве и дорогах домой</p></div></div>
- <dialog id="dialog"><div id="dialog-content"></div></dialog><div id="toast" role="status"></div>`;
-const map=createMap($('map'),{onCell:selectCell,onHover:(x,y)=>{if(!playing)return;const t=getTile(state,x,y);$('hover-note').textContent=`Участок ${x+1}:${y+1} · ${t?.damaged?'повреждён':t?.road?({dirt:'грунтовая дорога',asphalt:'асфальт',bridge:'мост'}[t.road]):t?.terrain==='water'?'река':t?.terrain==='obstacle'?'зелёная зона':'земля для строительства'}`;}});
-function toast(text:string){$('toast').textContent=text;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),3500);}
-function modal(html:string){$('dialog-content').innerHTML=html;const d=$('dialog') as HTMLDialogElement;if(!d.open)d.showModal();$('dialog-content').querySelectorAll('[data-close]').forEach(b=>b.addEventListener('click',()=>d.close()));}
-function help(){modal(`<span class="eyebrow">Памятка руководителя</span><h2>Каждая дорога ведёт к людям</h2><ol class="help-list"><li><b>Изучите обещания.</b> У каждой задачи есть срок. Условия проверяются в конце дня.</li><li><b>Выберите инструмент и участок.</b> Сначала появятся цена и прогноз. Нажмите «Строить», чтобы подтвердить.</li><li><b>Проверяйте маршруты.</b> Выберите дом на карте или в списке, затем школу, медпункт или пожарную часть.</li><li><b>Учитывайте погоду.</b> Дождь в дни 3, 6 и 7 удваивает время по грунту. В начале дня 4 старый южный мост будет закрыт из-за повреждения.</li><li><b>Завершите семь дней.</b> Деньги не пополняются. Отменять действия можно до конца текущего дня.</li></ol><p>Движение — только по дорогам, через соседние по стороне клетки. У каждого здания есть отмеченный вход. Мост строится сразу через всю реку в одном из трёх створов.</p><details><summary>Как считаются показатели и победа</summary><p>Доступность A — доля существующих маршрутов (всего 18). Скорость S — среднее max(0, 1 − время / 60) по всем 18 маршрутам; недоступный даёт 0. Время указано в условных единицах.</p><p>Благополучие = 100 × (0,55A + 0,30S + 0,15Q), где Q — доля выполненных в срок задач среди уже открытых задач. Итог = 40A + 30S + 25Q + 5 × остаток бюджета / 900.</p><p>Успех: не менее 65 баллов, все маршруты доступны и выполнено минимум 4 из 6 задач. Отличный результат — от 80 баллов при выполнении условий успеха.</p></details><button class="primary" data-close>Всё понятно</button>`);}
-function selectCell(x:number,y:number){if(!playing||state.finished)return;selected={x,y};const b=BUILDINGS.find(b=>b.x===x&&b.y===y);if(b){mode=null;if(b.kind==='home'){home=b.id;($('home') as HTMLSelectElement).value=home;}else service=b.id;}render();}
-function render(){const m=getMetrics(state);const route=getRoute(state,home,service);$('day').innerHTML=`<b>День ${state.day}</b><span>из 7</span>`;$('weather').textContent=getWeather(state)==='rain'?'☂ Дождь · грунт замедлен':'☀ Ясно · сухие дороги';
- $('stats').innerHTML=`<div class="stat budget"><span>Бюджет</span><strong>${state.budget}<small> ед.</small></strong></div><div class="stat" title="Доля доступных маршрутов от шести домов к трём учреждениям"><span>Доступность</span><strong>${Math.round(m.accessibility)}<small>%</small></strong><i style="--value:${m.accessibility}%"></i></div><div class="stat" title="Среднее по доступным маршрутам; отключённые пары показаны отдельно"><span>Средний путь</span><strong>${m.averageTime===null?'—':m.averageTime.toFixed(1)}<small> усл. ед.</small></strong></div><div class="stat" title="Зависит от доступности, времени в пути и выполнения обещаний"><span>Благополучие</span><strong>${m.wellbeing}<small>/100</small></strong></div>`;
- const tasks=getTasks(state);$('task-count').textContent=`${state.completedTasks.length} / ${tasks.length}`;$('tasks').innerHTML=tasks.filter(t=>t.status!=='locked').sort((a,b)=>Number(['completed','failed'].includes(a.status))-Number(['completed','failed'].includes(b.status))||a.deadline-b.deadline).map(t=>`<article class="task ${t.status}"><span class="task-icon">${t.status==='completed'?'✓':t.status==='failed'?'!':t.status==='ready'?'◇':'○'}</span><div><h3>${esc(t.title)}</h3><p>${esc(t.description)}</p><div class="task-meta"><span>${t.status==='completed'?'Выполнено':t.status==='failed'?'Срок пропущен':t.status==='ready'?'Готово к проверке':`До конца дня ${t.deadline}`}</span><span>${esc(t.progress)}</span></div></div></article>`).join('');
- $('tools').innerHTML=(Object.keys(names) as Action[]).map((a,i)=>`<button class="tool ${mode===a?'active':''}" data-tool="${a}"><span class="tool-art tool-${a}">${['┄','═','╫','⚒'][i]}</span><span>${['Грунт','Асфальт','Мост','Ремонт'][i]}<small>${[25,45,200,'15 / 80'][i]} ед.</small></span></button>`).join('');$('tools').querySelectorAll<HTMLElement>('[data-tool]').forEach(b=>b.onclick=()=>{mode=mode===b.dataset.tool?null:b.dataset.tool as Action;render();});
- const p=selected&&mode?previewAction(state,mode,selected.x,selected.y):null;
- if(p&&selected&&mode){$('selection').innerHTML=`<div><b>${names[mode]} · ${selected.x+1}:${selected.y+1}</b><p>${p.valid?`Стоимость ${p.cost} ед. · доступность ${Math.round(p.metrics!.accessibility)}% · средний путь ${p.metrics!.averageTime?.toFixed(1)??'—'} усл. ед.`:esc(p.reason)}</p></div><button id="build" class="primary compact" ${p.valid?'':'disabled'}>Строить · ${p.cost}</button>`;$('build').onclick=()=>{const result=applyAction(state,mode!,selected!.x,selected!.y);toast(result.message);if(result.ok){chime();save();}render();};}
- else {const b=selected?BUILDINGS.find(b=>b.x===selected!.x&&b.y===selected!.y):null;$('selection').innerHTML=`<div><b>${b?esc(b.name):mode?names[mode]:'Начните с тех, кому труднее всего'}</b><p>${b?`Вход на участке ${b.entrance.x+1}:${b.entrance.y+1}. ${b.residents?`Жителей: ${b.residents}.`:''} Маршрут отмечен на карте.`:mode?'Выберите участок на карте для предварительного расчёта.':'Выберите инструмент или жилой дом. На строительство — 900 единиц на всю неделю.'}</p></div>`;}
- ($('undo') as HTMLButtonElement).disabled=!state.history.length||state.finished;
- $('route-info').innerHTML=`<b>${route.time===null?'Нет проезда':`${route.time.toFixed(1)} <small>усл. ед. времени</small>`}</b><span>${m.connected} из ${m.total} маршрутов доступны</span>`;
- $('services').querySelectorAll<HTMLElement>('[data-service]').forEach(b=>b.classList.toggle('active',b.dataset.service===service));$('advisor').textContent=getAdvisor(state);$('save-status').textContent=storageWarning||'Прогресс сохраняется на этом устройстве';$('save-status').classList.toggle('warning',!!storageWarning);($('end-day') as HTMLButtonElement).disabled=state.finished;
- map.update(state,playing?route.path:[],selected,p&&selected?{...selected,valid:p.valid}:null);
+const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
+const esc = (value: unknown) =>
+  String(value).replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!,
+  );
+let state = createGame(),
+  playing = false,
+  mode: Action | null = null;
+let selected: Point | null = null,
+  home = 'home-east-north',
+  service = 'clinic';
+let storageWarning = '',
+  saveHint = '',
+  panel: 'today' | 'people' = 'today',
+  residentId = 'misha';
+let toastTimer: ReturnType<typeof setTimeout>;
+let volume = 0;
+try {
+  volume = Math.min(1, Math.max(0, Number(localStorage.getItem('berezovka-volume')) || 0));
+} catch {}
+setVolume(volume);
+
+const icons: Record<Action, string> = {
+  dirt: '<path d="M7 2 4 22m13-20 3 20M12 4v3m0 4v3m0 4v3" stroke-dasharray="2 2"/>',
+  asphalt: '<path d="M6 2 3 22m15-20 3 20M12 3v4m0 4v3m0 4v3"/>',
+  bridge:
+    '<path d="M2 17h20M4 17V6m16 11V6M4 8c5 7 11 7 16 0M8 12v5m8-5v5M2 22c3-2 4 2 7 0s4 2 7 0 4 2 6 0"/>',
+  repair: '<path d="m5 21 10-10M14 3a6 6 0 0 0-3 8l3 3a6 6 0 0 0 8-8l-5 4-3-3 4-5z"/>',
+  reinforce: '<path d="m12 2 8 3v7c0 5-8 10-8 10S4 17 4 12V5zM8 12l3 3 5-6"/>',
+};
+const icon = (a: Action) =>
+  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[a]}</svg>`;
+const portrait = (id: string, color: string) => {
+  const old = id === 'anna' || id === 'nina',
+    boy = id === 'misha';
+  return `<svg class="portrait" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="18" fill="${color}"/><path d="M10 64q2-22 22-22t22 22" fill="${boy ? '#dfbb75' : old ? '#e5d7b4' : '#cbdac8'}"/><path d="M20 29q-4-21 12-21t12 21" fill="${old ? '#d5d3c0' : '#655444'}"/><path d="M19 28q0-15 13-15t13 15v9q-2 13-13 13T19 37z" fill="#ebc7a3"/><path d="M18 26q1-19 14-19t15 19q-10-2-14-10-4 9-15 10" fill="${old ? '#dddac9' : '#655444'}"/><path d="M25 31h2m10 0h2" stroke="#4d4b42" stroke-width="2.5" stroke-linecap="round"/><path d="M28 40q4 3 8 0" fill="none" stroke="#aa775e" stroke-width="1.5"/>${old ? '<path d="M21 29h9v6h-9zm13 0h9v6h-9zm-4 2h4" fill="none" stroke="#6b7466" stroke-width="1.3"/>' : ''}</svg>`;
+};
+
+$('app').innerHTML = `
+<div id="play-screen" inert>
+  <header class="topbar">
+    <button id="brand" class="brand" title="Открыть главное меню"><span class="brand-mark">≋</span><span>Мост между нами<small>Берёзовка · семь дней добрых перемен</small></span></button>
+    <div class="top-actions"><span id="save-status" role="status"></span><button id="sound" class="quiet" aria-label="Включить звук"></button><label class="volume" title="Громкость звуков">Громкость<input id="volume" aria-label="Громкость звуков" type="range" min="0" max="100" step="5" value="${volume * 100}"></label><button id="help" class="quiet">Правила</button><button id="menu-button" class="quiet">Меню</button></div>
+  </header>
+  <main class="layout">
+    <section class="world" aria-label="Карта и строительство">
+      <div class="stats" id="stats"></div>
+      <div class="map-header"><span>БЕРЁЗОВКА <i> / река Сосновка</i></span><span id="weather"></span></div>
+      <div class="map-frame"><div id="map"></div><div class="map-controls"><button id="zoom-out" title="Отдалить карту" aria-label="Отдалить карту">−</button><button id="zoom-reset" title="Показать всю карту">Вся карта</button><button id="zoom-in" title="Приблизить карту" aria-label="Приблизить карту">+</button></div></div>
+      <div class="map-caption"><span id="hover-note">Входы зданий отмечены светлым. Красное — повреждения.</span><span>Стрелки · выбор клетки / Enter · действие</span></div>
+      <div class="build-heading"><span>Дороги для людей</span><button id="undo" class="text-button">↶ Отменить <kbd>Ctrl Z</kbd></button></div>
+      <div class="tools" id="tools">${(Object.keys(ACTION_LABELS) as Action[]).map((a, i) => `<button class="tool" data-tool="${a}" title="${ACTION_LABELS[a]} · клавиша ${i + 1}">${icon(a)}<span>${['Грунт', 'Асфальт', 'Мост', 'Ремонт', 'Укрепить'][i]}<small>${['18', '24 / 34', '140 / 220', '16 / 58', '52'][i]} ед.</small></span><kbd>${i + 1}</kbd></button>`).join('')}</div>
+      <div id="selection" class="selection" aria-live="polite"></div>
+    </section>
+    <aside class="sidebar">
+      <div class="chapter"><span id="day-number" class="eyebrow"></span><h1 id="day-title"></h1><p id="day-subtitle"></p><div class="week" id="week"></div></div>
+      <div class="side-tabs" role="tablist" aria-label="Сведения о поселении"><button id="tab-today" role="tab" aria-selected="true" aria-controls="today-panel">Сегодня</button><button id="tab-people" role="tab" aria-selected="false" aria-controls="people-panel">Жители</button></div>
+      <div class="side-scroll">
+        <div id="today-panel" role="tabpanel" aria-labelledby="tab-today"><div id="tutorial" class="tutorial"></div><p id="day-story" class="day-story"></p><section id="goal" class="goal"></section><details class="forecast"><summary>Что будет завтра</summary><p id="forecast"></p></details><details class="journal"><summary>Дневник недели <span id="task-count"></span></summary><div id="journal"></div></details></div>
+        <div id="people-panel" class="hidden" role="tabpanel" aria-labelledby="tab-people"><div id="people-list" class="people-list"></div><div id="resident-story"></div></div>
+        <section class="route-panel"><div class="section-label">Проверить путь</div><label for="home">Жилой квартал</label><select id="home">${BUILDINGS.filter(
+          (b) => b.kind === 'home',
+        )
+          .map((b) => `<option value="${b.id}">${b.name}</option>`)
+          .join('')}</select><div class="service-tabs" id="services">${BUILDINGS.filter(
+          (b) => b.kind !== 'home',
+        )
+          .map(
+            (b) =>
+              `<button data-service="${b.id}" title="${b.name}">${{ school: 'Школа', clinic: 'Медпункт', fire: 'Пожарная', work: 'Мастерская', home: '' }[b.kind]}</button>`,
+          )
+          .join(
+            '',
+          )}</div><div id="route-info"></div><p id="route-explanation" class="route-explanation"></p></section>
+        <details class="advisor" open><summary>Совет дорожного инженера</summary><p id="advisor"></p></details>
+      </div>
+      <button id="end-day" class="primary end-day">Завершить день <span>→</span></button><p class="autosave">Автосохранение после каждого решения</p>
+    </aside>
+  </main>
+</div>
+<div id="menu" class="menu-overlay" role="dialog" aria-modal="true" aria-labelledby="menu-title">
+  <div class="menu-landscape" aria-hidden="true"><div class="sun"></div><div class="hill hill-back"></div><div class="hill"></div><div class="river"></div><div class="menu-bridge"><i></i><i></i><i></i><i></i></div><div class="menu-house house-one"></div><div class="menu-house house-two"></div><div class="menu-tree tree-one"></div><div class="menu-tree tree-two"></div><span class="landscape-caption">БЕРЁЗОВКА / НА ДВУХ БЕРЕГАХ</span></div>
+  <div class="menu-card"><div class="edition">СОЦИАЛЬНАЯ СТРАТЕГИЯ · СЕМЬ ИГРОВЫХ ДНЕЙ</div><span class="menu-symbol">≋</span><h1 id="menu-title">Мост<br>между нами<span>.</span></h1><p class="menu-lead">У каждого пути есть человек,<br>которому он нужен.</p><p class="menu-description">Верните детям дорогу к школе, помогите соседям встретиться и оставьте после себя поселение, в котором стало ближе жить.</p><button id="new-game" class="primary">Начать новую историю <span>→</span></button><button id="continue" class="secondary hidden">Продолжить неделю</button><div class="menu-links"><button id="menu-help" class="text-button">Как играть</button><button id="about" class="text-button">Об игре</button></div><p id="save-hint" class="save-hint"></p><div class="menu-foot">Одна река. Два берега. Общее дело.<small>Локальная игра · без регистрации · без интернета</small></div></div>
+</div>
+<dialog id="dialog"><div id="dialog-content"></div></dialog><div id="toast" role="status"></div>`;
+
+const map = createMap($('map'), {
+  onCell: selectCell,
+  onHover: (x, y) => {
+    if (!playing) return;
+    const tile = getTile(state, x, y),
+      building = BUILDINGS.find((b) => b.x === x && b.y === y);
+    $('hover-note').textContent =
+      `${x + 1}:${y + 1} · ${building?.name ?? (tile?.damaged ? 'нужен ремонт' : tile?.reinforced ? 'мост защищён от паводка' : tile?.road ? { dirt: 'грунт', asphalt: 'асфальт', bridge: 'деревянный мост' }[tile.road] : tile?.bridgeSite ? 'створ моста' : tile?.terrain === 'water' ? 'река' : tile?.terrain === 'obstacle' ? 'охраняемая зелёная зона' : 'можно проложить дорогу')}`;
+  },
+});
+
+function readSave(): GameState | null {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY) ?? localStorage.getItem(LEGACY_SAVE_KEY);
+    const result = raw ? deserialize(raw) : null;
+    saveHint =
+      raw && !result
+        ? 'Сохранение повреждено или создано неизвестной версией. Начните новую историю.'
+        : '';
+    return result;
+  } catch {
+    saveHint = 'Хранилище браузера недоступно. Играть можно, но прогресс не сохранится.';
+    return null;
+  }
 }
-function showMenu(){playing=false;$('menu').classList.remove('hidden');const s=readSave();$('continue').classList.toggle('hidden',!s);render();}
-function begin(s:GameState){state=s;playing=true;mode=null;selected=null;$('menu').classList.add('hidden');save();render();if(state.finished)finalScreen();}
-function finalScreen(){const score=getScore(state),m=getMetrics(state);modal(`<span class="eyebrow">Семь дней, которые изменили Берёзовку</span><h2>${esc(score.label)}</h2><div class="final-score">${score.total}<span>/ 100</span></div><p>${score.success?'Вы сделали поселение ближе: важные маршруты открыты, а обещания превратились в реальные дороги.':'Берёзовке ещё нужна помощь. Попробуйте другой порядок строительства: сначала устраните разрывы сети, затем сокращайте пути.'}</p><div class="result-grid"><div><b>${m.connected}/${m.total}</b><span>маршрутов открыто</span></div><div><b>${state.completedTasks.length}/6</b><span>обещаний выполнено</span></div><div><b>${state.budget}</b><span>единиц сохранено</span></div></div><p>Баллы: доступность ${score.accessibility.toFixed(1)} · скорость ${score.speed.toFixed(1)} · задачи ${score.tasks.toFixed(1)} · экономия ${score.economy.toFixed(1)}.</p><button class="primary" id="again">Новая история →</button><button class="secondary" data-close>Посмотреть поселение</button>`);$('again').onclick=()=>{($('dialog') as HTMLDialogElement).close();begin(createGame());};}
- $('end-day').onclick=()=>{const pending=getTasks(state).filter(t=>t.deadline===state.day&&t.status==='active');modal(`<span class="eyebrow">Итоги решений</span><h2>Завершить день ${state.day}?</h2><p>${pending.length?`Остались невыполненные обещания со сроком сегодня: ${pending.map(t=>esc(t.title)).join(', ')}.`:'Условия задач будут проверены, строительство сохранится.'}</p><p>После перехода отменить сегодняшние работы уже нельзя.${state.day===2||state.day===5?' Завтра дождь: грунтовые дороги станут медленнее.':''}${state.day===3?' Завтра старый южный мост закроется из-за повреждения.':''}</p><button id="confirm-day" class="primary">${state.day===7?'Подвести итог':'Завершить день'}</button><button class="secondary" data-close>Вернуться к карте</button>`);$('confirm-day').onclick=()=>{const r=endDay(state);mode=null;selected=null;save();render();chime();if(r.finished){finalScreen();return;}modal(`<span class="eyebrow">Берёзовка · отчёт</span><h2>День ${r.day} завершён</h2><div class="result-grid"><div><b>${Math.round(r.after.accessibility)}%</b><span>доступность · было ${Math.round(r.before.accessibility)}%</span></div><div><b>${r.after.averageTime?.toFixed(1)??'—'}</b><span>путь · было ${r.before.averageTime?.toFixed(1)??'—'}</span></div></div><p>Выполнено обещаний: ${r.completed.length}. Пропущено сроков: ${r.failed.length}.</p>${r.completed.length?`<p>Выполнено: ${r.completed.map(esc).join(' · ')}.</p>`:''}${r.failed.length?`<p>Не выполнено в срок: ${r.failed.map(esc).join(' · ')}.</p>`:''}${r.events.map(e=>`<p class="event">${esc(e)}</p>`).join('')}<button class="primary" data-close>Начать день ${state.day} →</button>`);};};
- $('undo').onclick=()=>{if(undo(state)){save();render();toast('Последнее действие отменено. Бюджет возвращён.');}};
- $('home').onchange=()=>{home=($('home') as HTMLSelectElement).value;mode=null;render();};
- $('services').querySelectorAll<HTMLElement>('[data-service]').forEach(b=>b.onclick=()=>{service=b.dataset.service!;render();});
- $('new-game').onclick=()=>{if(readSave()){modal('<h2>Начать заново?</h2><p>Сохранённая партия будет заменена новой.</p><button id="confirm-new" class="primary">Начать новую игру</button><button class="secondary" data-close>Отмена</button>');$('confirm-new').onclick=()=>{($('dialog') as HTMLDialogElement).close();begin(createGame());};}else begin(createGame());};
- $('continue').onclick=()=>{const s=readSave();if(s)begin(s);else toast('Сохранение недоступно. Можно начать новую игру.');};
- $('help').onclick=help;$('menu-help').onclick=help;$('brand').onclick=showMenu;$('menu-button').onclick=showMenu;
- $('sound').onclick=()=>{sound=!sound;$('sound').textContent=`Звук: ${sound?'вкл.':'выкл.'}`;chime();};
- $('about').onclick=()=>modal('<span class="eyebrow">Об игре</span><h2>Мост между нами</h2><p>Небольшая стратегия о сельской инфраструктуре и ответственности за общие решения. Берёзовка — вымышленное поселение; игровые единицы времени не являются реальными минутами.</p><p>Маршруты вычисляются алгоритмом Дейкстры. Советник анализирует состояние дорожной сети; это алгоритмическая система, а не нейросеть.</p><p>Графика создана программно для этой игры. Короткие звуковые сигналы синтезируются в браузере. Данные хранятся только на вашем устройстве.</p><button class="primary" data-close>Назад</button>');
- document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!(($('dialog') as HTMLDialogElement).open)){mode=null;selected=null;render();}});
- showMenu();
+function save() {
+  try {
+    localStorage.setItem(SAVE_KEY, serialize(state));
+    storageWarning = '';
+  } catch {
+    storageWarning = 'Сохранение недоступно. Не закрывайте игру до конца недели.';
+  }
+}
+function toast(message: string) {
+  clearTimeout(toastTimer);
+  $('toast').textContent = message;
+  $('toast').classList.add('show');
+  toastTimer = setTimeout(() => $('toast').classList.remove('show'), 4000);
+}
+function modal(content: string) {
+  $('dialog-content').innerHTML = content;
+  if (!$<HTMLDialogElement>('dialog').open) $<HTMLDialogElement>('dialog').showModal();
+}
+const closeDialog = () => $<HTMLDialogElement>('dialog').close();
+function showMenu() {
+  playing = false;
+  $('play-screen').inert = true;
+  $('menu').classList.remove('hidden');
+  $('continue').classList.toggle('hidden', !readSave());
+  $('save-hint').textContent = saveHint;
+  render();
+  (readSave() ? $('continue') : $('new-game')).focus();
+}
+function begin(next: GameState) {
+  state = next;
+  playing = true;
+  mode = null;
+  selected = null;
+  panel = 'today';
+  $('menu').classList.add('hidden');
+  $('play-screen').inert = false;
+  home = 'home-east-north';
+  service = state.day === 1 ? 'clinic' : 'school';
+  const notice = state.migrationNotice;
+  delete state.migrationNotice;
+  save();
+  render();
+  $('map').querySelector('canvas')?.focus();
+  if (state.finished) finalScreen();
+  else if (notice)
+    modal(
+      `<span class="eyebrow">Продолжить историю</span><h2>Берёзовка обновилась</h2><p>${esc(notice)}</p><button class="primary" data-close>К карте</button>`,
+    );
+}
+function selectCell(x: number, y: number) {
+  if (!playing) return;
+  selected = { x, y };
+  const building = BUILDINGS.find((b) => b.x === x && b.y === y);
+  if (building && !mode) {
+    if (building.kind === 'home') home = building.id;
+    else service = building.id;
+  }
+  if (mode && state.tutorialStep === 1) state.tutorialStep = 2;
+  render();
+}
+function chooseTool(action: Action) {
+  if (!playing || state.finished) return;
+  mode = mode === action ? null : action;
+  if (mode && state.tutorialStep === 0) state.tutorialStep = 1;
+  render();
+}
+function build() {
+  if (!playing || state.finished || !mode || !selected) return;
+  const result = applyAction(state, mode, selected.x, selected.y);
+  toast(result.message);
+  if (result.ok) {
+    state.tutorialStep = Math.max(state.tutorialStep, 3);
+    playCue('build');
+    map.animateBuild(selected);
+    save();
+  } else playCue('error');
+  render();
+}
+
+function render() {
+  const m = getMetrics(state),
+    day = DAYS[state.day - 1],
+    tasks = getTasks(state);
+  const goal = tasks.find((t) => t.startDay === state.day)!;
+  const route = getRoute(state, home, service);
+  $('day-number').textContent = `ГЛАВА ${state.day} ИЗ 7`;
+  $('day-title').textContent = day.title;
+  $('day-subtitle').textContent = day.subtitle;
+  $('week').innerHTML = DAYS.map(
+    (d, i) =>
+      `<span title="День ${i + 1}: ${d.title}" class="${i + 1 === state.day ? 'current' : i + 1 < state.day ? 'past' : ''}">${i + 1}</span>`,
+  ).join('');
+  $('stats').innerHTML =
+    `<div class="stat budget"><span>На общее дело</span><strong>${state.budget}<small> / ${INITIAL_BUDGET}</small></strong></div><div class="stat" title="Доля кварталов, связанных с каждым открытым учреждением"><span>Доступные пути</span><strong>${m.connected}<small> / ${m.total}</small></strong></div><div class="stat" title="Среднее по существующим маршрутам; недоступные пары видны в соседнем показателе"><span>Средний путь</span><strong>${m.averageTime?.toFixed(1) ?? '—'}<small> усл. ед.</small></strong></div><div class="stat" title="55% доступность + 30% скорость + 15% выполненные обещания"><span>Благополучие</span><strong>${m.wellbeing}<small> / 100</small></strong></div>`;
+  $('weather').textContent =
+    `${getWeather(state) === 'rain' ? '☂ Дождь · грунт медленнее' : '☀ Ясно'} · мостов ${activeBridges(state)}`;
+  $('day-story').textContent = day.story;
+  $('forecast').textContent = day.forecast;
+  $('goal').className = `goal ${goal.status}`;
+  $('goal').innerHTML =
+    `<div class="section-label">${goal.status === 'ready' ? '✓ Можно завершать день' : goal.status === 'completed' ? '✓ Обещание выполнено' : goal.status === 'failed' ? 'Срок пропущен' : 'Обещание на сегодня'}</div><h2>${goal.title}</h2><p>${goal.description}</p><div class="goal-progress">${esc(goal.progress)}</div><button id="focus-goal" class="text-button">Показать нужный маршрут →</button>`;
+  $('task-count').textContent = `${state.completedTasks.length} / 7`;
+  $('journal').innerHTML = tasks
+    .map(
+      (t) =>
+        `<article class="journal-task ${t.status}"><span>${t.status === 'completed' ? '✓' : t.status === 'failed' ? '!' : t.startDay}</span><div><b>${t.title}</b><small>${t.progress}</small></div></article>`,
+    )
+    .join('');
+  $('tab-today').setAttribute('aria-selected', String(panel === 'today'));
+  $('tab-people').setAttribute('aria-selected', String(panel === 'people'));
+  $('today-panel').classList.toggle('hidden', panel !== 'today');
+  $('people-panel').classList.toggle('hidden', panel !== 'people');
+  const residents = getResidentViews(state),
+    person = residents.find((p) => p.id === residentId)!;
+  $('people-list').innerHTML = residents
+    .map(
+      (p) =>
+        `<button class="person-tab ${p.id === residentId ? 'active' : ''}" data-person="${p.id}" title="${p.name} · ${p.statusText}">${portrait(p.id, p.color)}<span>${p.name.split(' ')[0]}</span></button>`,
+    )
+    .join('');
+  $('resident-story').innerHTML =
+    `<div class="resident-heading">${portrait(person.id, person.color)}<div><h2>${person.name}</h2><span>${person.role}</span></div></div><p class="resident-quote">«${person.quote}»</p><div class="resident-status ${person.status}">${person.statusText}${person.time !== null ? ` · ${person.time.toFixed(1)} усл. ед.` : ''}</div><button class="text-button" id="resident-route">Показать путь ${person.name === 'Анна Петровна' ? 'Анны Петровны' : person.name === 'Миша' ? 'Миши' : person.name === 'Илья' ? 'Ильи' : 'Нины Михайловны'} →</button>`;
+  $<HTMLSelectElement>('home').value = home;
+  $('services')
+    .querySelectorAll<HTMLButtonElement>('[data-service]')
+    .forEach((b) => {
+      b.classList.toggle('active', b.dataset.service === service);
+      b.disabled =
+        Number(BUILDINGS.find((x) => x.id === b.dataset.service)?.opensDay ?? 1) > state.day;
+    });
+  $('route-info').innerHTML =
+    `<b>${route.time === null ? 'Пока нет проезда' : `${route.time.toFixed(1)} <small>усл. ед. времени</small>`}</b><span>${route.path.length ? `${route.path.length - 1} клеток пути` : ''}</span>`;
+  $('route-explanation').textContent = explainRoute(state, home, service);
+  $('advisor').textContent = getAdvisor(state);
+  $('save-status').textContent = storageWarning || 'Прогресс сохранён на устройстве';
+  $('save-status').classList.toggle('warning', !!storageWarning);
+  $<HTMLButtonElement>('undo').disabled = !playing || !state.history.length || state.finished;
+  $<HTMLButtonElement>('end-day').disabled = !playing || state.finished;
+  $('end-day').innerHTML = state.finished
+    ? 'Неделя завершена'
+    : `${state.day === 7 ? 'Подвести итог' : 'Завершить день'} <span>→</span>`;
+  $('tools')
+    .querySelectorAll<HTMLButtonElement>('[data-tool]')
+    .forEach((b) => {
+      b.classList.toggle('active', b.dataset.tool === mode);
+      b.disabled = !playing || state.finished;
+    });
+  const preview = selected && mode ? previewAction(state, mode, selected.x, selected.y) : null;
+  if (preview && mode && selected) {
+    const delta = preview.metrics ? preview.metrics.connected - m.connected : 0;
+    const timeGain =
+      preview.metrics?.averageTime !== null &&
+      preview.metrics?.averageTime !== undefined &&
+      m.averageTime !== null
+        ? m.averageTime - preview.metrics.averageTime
+        : 0;
+    $('selection').className = `selection ${preview.valid ? 'valid' : 'invalid'}`;
+    $('selection').innerHTML =
+      `<div><b>${ACTION_LABELS[mode]} · ${selected.x + 1}:${selected.y + 1}</b><p>${esc(preview.reason)}${preview.valid ? ` · ${delta > 0 ? `+${delta} доступных путей` : timeGain > 0.01 ? `среднее время −${timeGain.toFixed(1)}` : 'Связность и время пока не изменятся'}` : ''}</p>${preview.tasksReady.length ? `<small class="positive">Станет готово: ${preview.tasksReady.map(esc).join(', ')}</small>` : ''}</div><button id="build" class="primary compact" ${preview.valid ? '' : 'disabled'}>${mode === 'reinforce' ? 'Укрепить' : mode === 'repair' ? 'Починить' : 'Строить'} · ${preview.cost}</button>`;
+  } else {
+    const building = selected
+      ? BUILDINGS.find((b) => b.x === selected!.x && b.y === selected!.y)
+      : null;
+    $('selection').className = 'selection';
+    $('selection').innerHTML =
+      `<div><b>${building?.name ?? (mode ? ACTION_LABELS[mode] : 'Выберите инструмент и участок')}</b><p>${building ? `Вход: ${building.entrance.x + 1}:${building.entrance.y + 1}. ${building.residents ? `Жителей: ${building.residents}.` : ''}` : mode ? 'Сначала прогноз и стоимость, затем подтверждение. Деньги списываются только после него.' : 'Клик по дому показывает путь. Клавиши 1–5 выбирают инструмент. Esc снимает выбор.'}</p></div>`;
+  }
+  const tutorials = [
+    '1 / 4 · Выберите «Грунт» или «Асфальт». Нужно вернуть проезд Северной слободе.',
+    '2 / 4 · Нажмите на разрыв дороги у Северной слободы: участок 18:4 отмечен золотым.',
+    '3 / 4 · Посмотрите стоимость и прогноз. Подтвердите работу кнопкой «Строить».',
+    '4 / 4 · Проверьте путь и цель справа. Стройку можно отменить до конца дня. Когда готовы — завершите день.',
+  ];
+  $('tutorial').classList.toggle('hidden', state.tutorialStep >= 4 || state.finished);
+  $('tutorial').innerHTML =
+    state.tutorialStep < 4
+      ? `<span>${tutorials[state.tutorialStep]}</span><button id="skip-tutorial" class="text-button">Понятно</button>`
+      : '';
+  map.update(
+    state,
+    playing ? route.path : [],
+    selected,
+    preview && selected ? { ...selected, valid: preview.valid } : null,
+    playing && state.tutorialStep < 3 ? { x: 17, y: 3 } : null,
+  );
+}
+
+function help() {
+  modal(
+    `<span class="eyebrow">Памятка руководителя</span><h2>Каждая дорога ведёт к людям</h2><ol class="help-list"><li>Каждый день даётся одно обещание. Его условия и прогресс видны справа. Срок — конец этого дня.</li><li>Выберите инструмент, затем клетку. Сравните стоимость и изменение маршрутов, подтвердите работу.</li><li>Дороги соединяются соседними сторонами. У каждого здания отмечен вход. Для моста доступны три створа.</li><li>Деревянные мосты стоят 140, каменный центральный — 220. Паводок дня 5 повреждает неукреплённые деревянные мосты. Укрепление — 52.</li><li>В дождь (дни 3, 5 и 7) грунт вдвое медленнее. Ремонт не улучшает покрытие. Асфальтирование грунта стоит 24, новый асфальт — 34.</li><li>На всю неделю ${INITIAL_BUDGET} единиц. Отменять можно только сегодняшнюю стройку. Прогноз предупреждает о следующем событии.</li></ol><details><summary>Формулы и условия успеха</summary><p>Маршруты вычисляет алгоритм Дейкстры. Вес грунтовой клетки: 2 в сухую погоду и 4 в дождь; асфальта и моста: 1. Цена перехода — полусумма весов соседних клеток. Это условные единицы, а не реальные минуты.</p><p>A — доля доступных путей; S — среднее max(0, 1 − время / 60), недоступный путь даёт 0. Q — доля выполненных задач. Благополучие: 55A + 30S + 15Q среди открытых задач. Итог: 35A + 20S + 40Q + 5 × бюджет / ${INITIAL_BUDGET}.</p><p>Успех: все 24 маршрута, минимум 5 из 7 обещаний, от 65 баллов. Высший итог: от 85 баллов и все 7 обещаний. Финальная цель отдельно требует два моста и среднее время до 29.</p></details><details><summary>Клавиатура и карта</summary><p>1–5: инструменты. Стрелки при фокусе карты: выбрать клетку. Enter на карте: подтвердить допустимую работу. Esc: снять инструмент. Ctrl/Cmd+Z: отменить работу. Колесо над картой или +/−: масштаб, перетаскивание правой кнопкой: перемещение, «Вся карта»: вернуть обзор.</p></details><button class="primary" data-close>К карте</button>`,
+  );
+}
+function finalScreen() {
+  const score = getScore(state),
+    m = getMetrics(state);
+  modal(
+    `<span class="eyebrow">Семь дней, которые останутся с нами</span><h2>${score.label}</h2><div class="final-score">${score.total}<span>/ 100</span></div><div class="result-grid"><div><b>${m.connected}/${m.total}</b><span>доступных путей</span></div><div><b>${state.completedTasks.length}/7</b><span>обещаний</span></div><div><b>${state.budget}</b><span>сохранено из ${INITIAL_BUDGET}</span></div></div><p class="ending-intro">${getEnding(state)[0]}</p><details class="ending-stories" open><summary>Как изменилась жизнь жителей</summary>${getResidentViews(
+      state,
+    )
+      .map(
+        (p) =>
+          `<div class="ending-person">${portrait(p.id, p.color)}<p><b>${p.name}</b><br>«${esc(p.quote)}»</p></div>`,
+      )
+      .join(
+        '',
+      )}</details><p>${getEnding(state).at(-1)}</p><p class="score-breakdown">Баллы: связь ${score.accessibility.toFixed(1)} · скорость ${score.speed.toFixed(1)} · обещания ${score.tasks.toFixed(1)} · экономия ${score.economy.toFixed(1)}.</p><button class="primary" id="again">Начать другую историю <span>→</span></button><button class="secondary" data-close>Посмотреть поселение</button>`,
+  );
+  playCue(score.success ? 'success' : 'day');
+}
+function confirmDay() {
+  if (!playing || state.finished) return;
+  const task = getTasks(state).find((t) => t.deadline === state.day)!;
+  modal(
+    `<span class="eyebrow">Берёзовка · день ${state.day}</span><h2>${state.day === 7 ? 'Завершить неделю?' : 'Завершить день?'}</h2><p class="${task.status === 'active' ? 'warning' : ''}">${task.status === 'ready' ? 'Сегодняшнее обещание выполнено:' : task.status === 'active' ? 'Цель пока не достигнута:' : ''} <b>${task.title}</b>.</p><p>${task.description} ${esc(task.progress)}</p><p>После перехода сегодняшнюю стройку нельзя отменить.</p><div class="forecast-callout">${DAYS[state.day - 1].forecast}</div><button id="confirm-day" class="primary">${state.day === 7 ? 'Подвести итог' : 'Завершить день'} <span>→</span></button><button class="secondary" data-close>Ещё поработать</button>`,
+  );
+}
+function advanceDay() {
+  if (!playing || state.finished) return;
+  const report = endDay(state);
+  mode = null;
+  selected = null;
+  panel = 'today';
+  save();
+  render();
+  playCue('day');
+  if (report.finished) {
+    finalScreen();
+    return;
+  }
+  modal(
+    `<span class="eyebrow">День ${report.day} завершён</span><h2>${report.completed.length ? 'Обещание стало делом' : 'Есть над чем поработать'}</h2><p>${report.completed.length ? `${report.completed.join(', ')} — выполнено.` : `${report.failed.join(', ')} — срок пропущен. Последующие дни остаются открыты.`}</p><div class="result-grid"><div><b>${Math.round(report.after.accessibility)}%</b><span>доступность · было ${Math.round(report.before.accessibility)}%</span></div><div><b>${report.after.averageTime?.toFixed(1) ?? '—'}</b><span>путь · было ${report.before.averageTime?.toFixed(1) ?? '—'}</span></div></div><div class="next-chapter"><span class="eyebrow">ДЕНЬ ${state.day}</span><h3>${DAYS[state.day - 1].title}</h3>${report.events.map((e) => `<p>${esc(e)}</p>`).join('')}</div><button class="primary" data-close>Начать день ${state.day} <span>→</span></button>`,
+  );
+}
+function focusGoal() {
+  const goal = TASKS.find((t) => t.startDay === state.day)!;
+  home = goal.homeId;
+  service = goal.serviceId;
+  mode = null;
+  render();
+}
+function setSound(value: number) {
+  volume = value;
+  setVolume(value);
+  $<HTMLInputElement>('volume').value = String(value * 100);
+  $('sound').textContent = value ? '♪ Звук' : '♪ Без звука';
+  $('sound').setAttribute('aria-label', value ? 'Отключить звук' : 'Включить звук');
+  try {
+    localStorage.setItem('berezovka-volume', String(value));
+  } catch {}
+}
+
+document.addEventListener('click', (event) => {
+  const button = (event.target as HTMLElement).closest<HTMLButtonElement>('button');
+  if (!button || button.disabled) return;
+  if (button.hasAttribute('data-close')) {
+    closeDialog();
+    return;
+  }
+  if (button.dataset.tool) {
+    chooseTool(button.dataset.tool as Action);
+    return;
+  }
+  if (button.dataset.service && playing) {
+    service = button.dataset.service;
+    mode = null;
+    render();
+    return;
+  }
+  if (button.dataset.person && playing) {
+    residentId = button.dataset.person;
+    render();
+    return;
+  }
+  switch (button.id) {
+    case 'new-game':
+      if (readSave())
+        modal(
+          '<span class="eyebrow">Новая неделя</span><h2>Начать другую историю?</h2><p>Текущая партия будет заменена. Её можно продолжить из главного меню.</p><button id="confirm-new" class="primary">Начать заново</button><button class="secondary" data-close>Вернуться</button>',
+        );
+      else begin(createGame());
+      break;
+    case 'confirm-new':
+      closeDialog();
+      begin(createGame());
+      break;
+    case 'continue': {
+      const saved = readSave();
+      if (saved) begin(saved);
+      else toast(saveHint || 'Продолжение недоступно.');
+      break;
+    }
+    case 'again':
+      closeDialog();
+      begin(createGame());
+      break;
+    case 'brand':
+    case 'menu-button':
+      showMenu();
+      break;
+    case 'help':
+    case 'menu-help':
+      help();
+      break;
+    case 'about':
+      modal(
+        '<span class="eyebrow">Мост между нами · версия 2</span><h2>Одна река. Общее дело.</h2><p>Авторская социальная стратегия о заботе, соседстве и сельской инфраструктуре. Берёзовка и её жители вымышлены.</p><p>Дороги, бюджет, погода и мосты влияют на реальные пути по игровому графу. Советник использует правила и расчёт маршрутов. Это классический алгоритм, а не нейросеть.</p><p>Вся графика и звуки созданы программно для игры. Внешние API, регистрация и интернет для прохождения не нужны. Лицензии Phaser и EventEmitter3 включены в поставку.</p><button class="primary" data-close>Продолжить</button>',
+      );
+      break;
+    case 'build':
+      build();
+      break;
+    case 'undo':
+      if (playing && undo(state)) {
+        save();
+        render();
+        playCue('undo');
+        toast('Работа отменена. Средства возвращены.');
+      }
+      break;
+    case 'end-day':
+      confirmDay();
+      break;
+    case 'confirm-day':
+      advanceDay();
+      break;
+    case 'tab-today':
+      panel = 'today';
+      render();
+      break;
+    case 'tab-people':
+      panel = 'people';
+      render();
+      break;
+    case 'focus-goal':
+      focusGoal();
+      break;
+    case 'resident-route': {
+      const person = getResidentViews(state).find((p) => p.id === residentId)!;
+      home = person.home;
+      service = person.service;
+      mode = null;
+      render();
+      break;
+    }
+    case 'skip-tutorial':
+      state.tutorialStep = 4;
+      save();
+      render();
+      break;
+    case 'sound':
+      setSound(volume ? 0 : 0.35);
+      playCue('build');
+      break;
+    case 'zoom-in':
+      map.zoom(1);
+      break;
+    case 'zoom-out':
+      map.zoom(-1);
+      break;
+    case 'zoom-reset':
+      map.resetView();
+      break;
+  }
+});
+$<HTMLSelectElement>('home').onchange = () => {
+  if (!playing) return;
+  home = $<HTMLSelectElement>('home').value;
+  mode = null;
+  render();
+};
+$<HTMLInputElement>('volume').oninput = () =>
+  setSound(Number($<HTMLInputElement>('volume').value) / 100);
+$('dialog').addEventListener('close', () => {
+  if (!playing) (readSave() ? $('continue') : $('new-game')).focus();
+});
+document.addEventListener('keydown', (event) => {
+  if ($<HTMLDialogElement>('dialog').open) return;
+  if (!playing) {
+    if (event.key === 'Tab') {
+      const buttons = Array.from($('menu').querySelectorAll<HTMLButtonElement>('button')).filter(
+        (button) => !button.disabled && button.getClientRects().length > 0,
+      );
+      const edge = event.shiftKey ? buttons[0] : buttons.at(-1);
+      if (document.activeElement === edge) {
+        event.preventDefault();
+        (event.shiftKey ? buttons.at(-1) : buttons[0])?.focus();
+      }
+    }
+    return;
+  }
+  const target = event.target as HTMLElement;
+  if (target.getAttribute('role') === 'tab' && ['ArrowLeft', 'ArrowRight'].includes(event.key)) {
+    event.preventDefault();
+    panel = panel === 'today' ? 'people' : 'today';
+    render();
+    $(panel === 'today' ? 'tab-today' : 'tab-people').focus();
+    return;
+  }
+  if (['INPUT', 'SELECT', 'TEXTAREA'].includes(target.tagName)) return;
+  if (event.key === 'Escape') {
+    mode = null;
+    selected = null;
+    render();
+    return;
+  }
+  if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
+    event.preventDefault();
+    if (undo(state)) {
+      save();
+      render();
+      playCue('undo');
+    }
+    return;
+  }
+  if (!state.finished && /^[1-5]$/.test(event.key)) {
+    event.preventDefault();
+    chooseTool((Object.keys(ACTION_LABELS) as Action[])[Number(event.key) - 1]);
+    $('map').querySelector('canvas')?.focus();
+    return;
+  }
+  if (target.tagName === 'CANVAS') {
+    const directions: Record<string, Point> = {
+      ArrowLeft: { x: -1, y: 0 },
+      ArrowRight: { x: 1, y: 0 },
+      ArrowUp: { x: 0, y: -1 },
+      ArrowDown: { x: 0, y: 1 },
+    };
+    const direction = directions[event.key];
+    if (direction) {
+      event.preventDefault();
+      const point = selected ?? { x: 17, y: 3 };
+      selectCell(
+        Math.max(0, Math.min(23, point.x + direction.x)),
+        Math.max(0, Math.min(15, point.y + direction.y)),
+      );
+      map.reveal(selected!);
+    } else if (event.key === 'Enter') {
+      event.preventDefault();
+      if (mode && selected) build();
+      else selectCell(17, 3);
+    }
+  }
+});
+setSound(volume);
+showMenu();

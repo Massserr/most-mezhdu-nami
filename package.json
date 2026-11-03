@@ -1,13 +1,27 @@
 {
   "name": "most-mezhdu-nami",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
-    "test": "node --experimental-strip-types --test tests/*.test.ts"
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "start": "node scripts/server.cjs",
+    "test:browser": "node --experimental-strip-types scripts/browser-test.ts",
+    "format": "prettier --write src tests scripts .github README.md package.json tsconfig.json vite.config.js",
+    "format:check": "prettier --check src tests scripts .github README.md package.json tsconfig.json vite.config.js"
   },
-  "dependencies": { "phaser": "3.90.0" },
-  "devDependencies": { "typescript": "~5.8.3", "vite": "~6.3.5" }
+  "dependencies": {
+    "phaser": "3.90.0"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0",
+    "prettier": "3.6.2",
+    "typescript": "~5.8.3",
+    "vite": "6.4.5"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  }
 }
