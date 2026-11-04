@@ -1,0 +1,7 @@
+node_modules
+dist
+package-lock.json
+SPECIFICATION.txt
+licenses
+release
+work
