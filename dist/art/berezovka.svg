@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 800" shape-rendering="crispEdges">
+  <title>Мост между нами — Берёзовка</title>
+  <desc>Оригинальная пиксельная игровая заставка: летнее небо, берёзовые рощи, деревня на двух берегах и деревянный мост.</desc>
+  <defs>
+    <g id="fir">
+      <path d="M8 31h17v4H8z" fill="#326847"/>
+      <path d="M14 21h5v13h-5z" fill="#694c30"/>
+      <path d="M13 0h7v6h3v6h4v7h4v10H2V19h4v-7h4V6h3z" fill="#225d43"/>
+      <path d="M13 2h5v6h3v6h4v8h-5v4H6v-7h4v-7h3z" fill="#388b4b"/>
+      <path d="M13 4h4v6h3v5h-8v7H8v-6h3v-6h2z" fill="#66b558"/>
+      <path d="M19 23h6v3h-6z" fill="#2d7845"/>
+    </g>
+    <g id="birch">
+      <path d="M6 39h29v4H6z" fill="#44834a"/>
+      <path d="M17 18h6v24h-6z" fill="#fff1cc"/>
+      <path d="M17 25h3v2h-3zm3 7h3v2h-3zm-3 6h3v2h-3z" fill="#52554b"/>
+      <path d="M9 2h21v5h7v6h4v14h-6v7H8v-5H1V14h4V7h4z" fill="#327e43"/>
+      <path d="M10 2h18v5h7v7h3v9h-9v5H7v-7H2v-7h4V7h4z" fill="#69b74f"/>
+      <path d="M11 4h15v4H11zM7 10h11v7H7zm13 0h12v6H20z" fill="#a7d762"/>
+      <path d="M7 22h9v4H7zm18-3h10v5H25z" fill="#8ac852"/>
+    </g>
+    <g id="house">
+      <path d="M4 28h31v5H4z" fill="#56824a"/>
+      <path d="M5 10h28v20H5z" fill="#ffe4a1"/>
+      <path d="M28 13h5v17h-5z" fill="#d0a66b"/>
+      <path d="M3 12h32v4H3z" fill="#743e32"/>
+      <path d="M5 8h28v5H5zM9 4h20v5H9zM13 0h12v5H13z" fill="#ca543f"/>
+      <path d="M13 2h12v2H13zM9 6h20v2H9zM6 10h26v2H6z" fill="#ec8555"/>
+      <path d="M8 20h6v7H8zm16 0h6v7h-6z" fill="#3a6573"/>
+      <path d="M9 21h4v4H9zm16 0h4v4h-4z" fill="#fff0a8"/>
+      <path d="M17 21h5v9h-5z" fill="#966234"/>
+      <path d="M16 29h7v3h-7z" fill="#ceab6c"/>
+      <path d="M27 0h3v8h-3z" fill="#7b6a51"/>
+    </g>
+    <g id="bluehouse">
+      <path d="M3 30h36v5H3z" fill="#56824a"/>
+      <path d="M5 12h31v20H5z" fill="#f8dd9d"/>
+      <path d="M31 14h5v18h-5z" fill="#c8a773"/>
+      <path d="M2 13h37v4H2z" fill="#2d4d68"/>
+      <path d="M5 8h31v6H5zM10 4h21v5H10zM15 0h11v5H15z" fill="#397fab"/>
+      <path d="M15 2h11v2H15zM10 6h21v2H10zM6 11h29v2H6z" fill="#69b0c7"/>
+      <path d="M9 21h6v7H9zm17 0h6v7h-6z" fill="#355b6d"/>
+      <path d="M10 22h4v4h-4zm17 0h4v4h-4z" fill="#fff2af"/>
+      <path d="M18 23h5v9h-5z" fill="#966234"/>
+    </g>
+    <g id="flower">
+      <path d="M2 4h1v5H2zM0 7h2v1H0z" fill="#398344"/>
+      <path d="M1 0h3v1H1zM0 1h5v3H0zM1 4h3v1H1z" fill="#fff2c9"/>
+      <path d="M2 2h1v1H2z" fill="#e9ab3c"/>
+    </g>
+    <g id="pinkflower">
+      <path d="M2 4h1v5H2zM3 7h2v1H3z" fill="#398344"/>
+      <path d="M1 0h3v1H1zM0 1h5v3H0zM1 4h3v1H1z" fill="#ed9c8d"/>
+      <path d="M2 2h1v1H2z" fill="#ffe1a8"/>
+    </g>
+    <g id="cloud">
+      <path d="M0 8h8V4h12V0h20v4h14v4h9v8H0z" fill="#b9e6db"/>
+      <path d="M2 8h8V4h12V0h18v4h12v4h8v5H2z" fill="#fff2cf"/>
+      <path d="M14 3h9V1h13v3H14z" fill="#fff9e4"/>
+    </g>
+  </defs>
+  <g transform="scale(4)">
+    <!-- Quiet open summer sky leaves room for the title. -->
+    <path d="M0 0h320v200H0z" fill="#76c9d4"/>
+    <path d="M0 0h320v24H0z" fill="#61b2cf"/>
+    <path d="M0 24h320v24H0z" fill="#6ebed2"/>
+    <path d="M244 13h12v3h4v13h-4v3h-13v-3h-4V17h5z" fill="#fff0a4"/>
+    <path d="M246 17h9v10h-9z" fill="#fff5bf"/>
+    <use href="#cloud" x="-13" y="13"/>
+    <use href="#cloud" x="261" y="40"/>
+    <use href="#cloud" x="54" y="48" transform="translate(27 24) scale(.5)"/>
+    <!-- Successive hill silhouettes build depth without gradients. -->
+    <path d="M0 75h14v-5h16v-6h16v-3h17v5h17v7h17v5h22v-5h19v-4h18v-5h22v6h18v7h19v-4h14v-9h17v-7h17v8h17v7h16v5h19v7H0z" fill="#75a9a4"/>
+    <path d="M0 87h18v-7h16v-4h20v8h16v5h26v-3h25v-4h19v7h24v-5h25v2h20v-7h21v-7h20v6h16v6h18v-4h16v10h20v24H0z" fill="#559a87"/>
+    <path d="M0 91h9v-8h7v-5h9v12h9v-5h8v6h9v-9h7v-5h6v13h11v-5h8v9h13v-5h9v-3h10v8h13v-5h13v7h40v-6h12v-6h10v-6h7v13h9v-8h8v-6h8v11h10v-6h9v-7h8v11h9v-4h8v-4h7v13h12v-7h8v-7h8v12h9v-7h8v-4h9v37H0z" fill="#337d66"/>
+    <!-- The river winds from the village into the foreground. -->
+    <path d="M0 104h320v96H0z" fill="#72b658"/>
+    <path d="M144 98h37v9h8v10h12v12h17v16h16v18h17v37H70v-20h14v-20h18v-20h13v-16h14v-14h15z" fill="#e4c584"/>
+    <path d="M147 99h32v10h8v10h12v12h17v16h16v18h17v35H74v-18h14v-20h18v-20h13v-16h14v-14h14z" fill="#3b9eb7"/>
+    <path d="M156 102h16v13h9v12h13v16h18v16h18v17h13v24H94v-20h17v-21h14v-17h14v-17h9v-11h8z" fill="#2787a9"/>
+    <path d="M139 121h10v1h-10zm35 8h14v1h-14zm-52 17h17v1h-17zm68 8h18v1h-18zm-84 26h20v1h-20zm72 3h26v1h-26zm-34 13h15v1h-15z" fill="#8bd9d8"/>
+    <path d="M145 133h9v1h-9zm20 14h12v1h-12zm-32 20h12v1h-12zm72 27h18v1h-18z" fill="#63bfc8"/>
+    <!-- Small fields, fences, and lanes make the banks inhabited. -->
+    <path d="M11 123h43v22H11z" fill="#caa76a"/>
+    <path d="M12 126h41v2H12zm0 5h41v2H12zm0 5h41v2H12zm0 5h41v2H12z" fill="#eccb7f"/>
+    <path d="M15 124h3v3h-3zm8 5h3v3h-3zm9 5h3v3h-3zm10-10h3v3h-3zm6 15h3v3h-3z" fill="#6b9b45"/>
+    <path d="M242 121h58v14h-58z" fill="#6da249"/>
+    <path d="M243 123h56v1h-56zm0 4h56v1h-56zm0 4h56v1h-56z" fill="#a3c767"/>
+    <path d="M42 118h43v9H42zm42 4h35v8H84zm124 3h43v9h-43z" fill="#dfbc79"/>
+    <path d="M59 131h56v5H59zm161 8h61v5h-61z" fill="#d8b376"/>
+    <use href="#house" x="25" y="91"/>
+    <use href="#bluehouse" x="72" y="94"/>
+    <use href="#house" x="247" y="94"/>
+    <use href="#bluehouse" x="214" y="106" transform="translate(53 26) scale(.8)"/>
+    <path d="M23 120h43v2H23zm0 6h43v2H23zM25 117h2v14h-2zm12 0h2v14h-2zm12 0h2v14h-2zm12 0h2v14h-2z" fill="#e9cf95"/>
+    <path d="M264 129h39v2h-39zm0 6h39v2h-39zM266 126h2v15h-2zm11 0h2v15h-2zm11 0h2v15h-2zm11 0h2v15h-2z" fill="#edd49b"/>
+    <!-- Forest edges frame, rather than cover, the title and controls. -->
+    <use href="#fir" x="-12" y="75"/>
+    <use href="#fir" x="5" y="84"/>
+    <use href="#birch" x="-16" y="108"/>
+    <use href="#fir" x="286" y="79"/>
+    <use href="#fir" x="305" y="88"/>
+    <use href="#birch" x="288" y="112"/>
+    <use href="#birch" x="12" y="146"/>
+    <use href="#fir" x="-16" y="146"/>
+    <use href="#birch" x="269" y="151"/>
+    <use href="#fir" x="299" y="148"/>
+    <!-- A broad timber bridge occupies the foreground. -->
+    <path d="M49 171h224v14h-16v7h-8v-13H76v13h-8v-7H49z" fill="#345b4c"/>
+    <path d="M47 157h228v19H47z" fill="#754b2c"/>
+    <path d="M49 156h224v16H49z" fill="#bd8447"/>
+    <path d="M49 156h224v4H49z" fill="#e2aa61"/>
+    <path d="M52 157h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1zm8 0h1v14h-1z" fill="#95602f"/>
+    <path d="M45 147h232v4H45zm0 8h232v3H45z" fill="#b37a40"/>
+    <path d="M45 146h232v2H45z" fill="#f1bc73"/>
+    <path d="M47 143h5v17h-5zm27 0h5v17h-5zm27 0h5v17h-5zm27 0h5v17h-5zm27 0h5v17h-5zm27 0h5v17h-5zm27 0h5v17h-5zm27 0h5v17h-5zm33 0h5v17h-5z" fill="#7c512e"/>
+    <path d="M47 143h5v3h-5zm27 0h5v3h-5zm27 0h5v3h-5zm27 0h5v3h-5zm27 0h5v3h-5zm27 0h5v3h-5zm27 0h5v3h-5zm27 0h5v3h-5zm33 0h5v3h-5z" fill="#dca15b"/>
+    <!-- Neighbours are heading towards one another. -->
+    <path d="M83 143h6v6h-6z" fill="#f2c18a"/>
+    <path d="M82 141h7v3h-7zm1-2h5v2h-5z" fill="#6a4938"/>
+    <path d="M81 149h10v10H81z" fill="#3a79ab"/>
+    <path d="M79 150h2v7h-2zm12 0h2v7h-2z" fill="#e3ac76"/>
+    <path d="M82 159h3v8h-3zm5 0h3v8h-3z" fill="#384756"/>
+    <path d="M85 153h5v3h-5z" fill="#66a8ca"/>
+    <path d="M226 143h6v7h-6z" fill="#f2c18a"/>
+    <path d="M225 141h8v3h-8zm1-2h6v2h-6z" fill="#d9cfac"/>
+    <path d="M224 150h10v11h-10z" fill="#c75b47"/>
+    <path d="M222 152h2v7h-2zm12 0h2v7h-2z" fill="#e3ac76"/>
+    <path d="M225 161h3v6h-3zm5 0h3v6h-3z" fill="#5d5541"/>
+    <path d="M233 155h5v8h-5z" fill="#c5a66a"/>
+    <!-- Front rails and braces give the crossing weight. -->
+    <path d="M44 167h234v4H44zm0 9h234v4H44z" fill="#7b4f2d"/>
+    <path d="M44 166h234v2H44z" fill="#e2a660"/>
+    <path d="M47 163h6v24h-6zm35 0h6v24h-6zm35 0h6v24h-6zm35 0h6v24h-6zm35 0h6v24h-6zm35 0h6v24h-6zm47 0h6v24h-6z" fill="#956032"/>
+    <path d="M47 162h6v3h-6zm35 0h6v3h-6zm35 0h6v3h-6zm35 0h6v3h-6zm35 0h6v3h-6zm35 0h6v3h-6zm47 0h6v3h-6z" fill="#e9b26b"/>
+    <path d="M53 181h10v3h-10zm10 3h10v3H63zm10 3h9v3h-9zm15 0h10v-3h10v-3h9v3h-8v3H99v3H88zM123 181h10v3h-10zm10 3h10v3h-10zm10 3h9v3h-9zm15 0h10v-3h10v-3h9v3h-8v3h-10v3h-11z" fill="#68452c"/>
+    <!-- Flowers and reeds in the near banks make a lived-in frame. -->
+    <path d="M0 177h33v7h18v16H0zm280 2h40v21h-51v-12h11z" fill="#419444"/>
+    <path d="M4 187h4v-7h2v7h4v-10h2v10h4v-7h2v7h3v13H4zm285 1h3v-9h2v9h5v-6h2v6h4v-11h2v11h7v12h-29z" fill="#6ab853"/>
+    <use href="#flower" x="8" y="176"/><use href="#flower" x="18" y="183"/><use href="#pinkflower" x="28" y="188"/>
+    <use href="#flower" x="38" y="187"/><use href="#pinkflower" x="3" y="190"/>
+    <use href="#flower" x="290" y="181"/><use href="#pinkflower" x="305" y="184"/>
+    <use href="#flower" x="298" y="190"/><use href="#flower" x="279" y="192"/>
+    <path d="M105 185h2v10h-2zm4 4h2v10h-2zm5-5h2v13h-2zM245 190h2v10h-2zm5-7h2v17h-2z" fill="#538d4d"/>
+    <path d="M104 181h3v6h-3zm9-2h3v7h-3zm136 0h3v7h-3z" fill="#aa713d"/>
+  </g>
+</svg>
