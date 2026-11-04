@@ -31,6 +31,7 @@ try {
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('http://127.0.0.1:4173/');
   await page.locator('canvas').waitFor();
+  await page.evaluate(() => document.fonts.ready);
   await page.screenshot({ path: path.join(output, '01-menu.png') });
   assert.equal(await page.locator('#play-screen').evaluate((el) => el.inert), true);
   for (let i = 0; i < 30; i++) {
@@ -43,6 +44,15 @@ try {
   checks.push('Menu traps keyboard outside the inert game screen');
   await page.locator('#new-game').click();
   await page.waitForTimeout(150);
+  assert.equal(await page.locator('#routes-panel').isVisible(), false);
+  await page.locator('#tab-routes').click();
+  assert.equal(await page.locator('#home').isVisible(), true);
+  await page.keyboard.press('ArrowLeft');
+  assert.equal(await page.locator('#tab-people').getAttribute('aria-selected'), 'true');
+  await page.keyboard.press('ArrowRight');
+  assert.equal(await page.locator('#tab-routes').getAttribute('aria-selected'), 'true');
+  await page.locator('#tab-today').click();
+  checks.push('Task, residents and route tabs switch with mouse and keyboard');
   const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem('berezovka-save-v1')!));
   const cell = async (x: number, y: number) => {
     const box = await page.locator('canvas').boundingBox();
@@ -110,6 +120,14 @@ try {
   await page.waitForTimeout(100);
   await page.locator('[data-tool="asphalt"]').click();
   await cell(17, 3);
+  assert.ok(
+    await page.locator('#selection > svg').evaluate((el) => el.getBoundingClientRect().width <= 48),
+  );
+  assert.equal(
+    await page.evaluate(() => document.documentElement.scrollHeight),
+    768,
+    'Construction preview fits the viewport',
+  );
   assert.equal((await saved()).budget, 700);
   await page.locator('#build').click();
   assert.equal((await saved()).budget, 666);
@@ -123,6 +141,7 @@ try {
   await page.keyboard.press('1');
   await page.keyboard.press('Enter');
   assert.equal((await saved()).budget, 682);
+  assert.match((await page.locator('#selection .sr-only').textContent()) ?? '', /Клетка 18:4/);
   await page.keyboard.press('Control+z');
   assert.equal((await saved()).budget, 700);
   await page.keyboard.press('Escape');
