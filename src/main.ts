@@ -30,6 +30,7 @@ import {
 import type { Action, GameState, Point } from './core/index.ts';
 import { createMap } from './render/MapView.ts';
 import { playCue, setVolume } from './audio.ts';
+import { bridgeMark, icon, portrait } from './render/uiArt.ts';
 
 const $ = <T extends HTMLElement = HTMLElement>(id: string) => document.getElementById(id) as T;
 const esc = (value: unknown) =>
@@ -55,35 +56,19 @@ try {
 } catch {}
 setVolume(volume);
 
-const icons: Record<Action, string> = {
-  dirt: '<path d="M7 2 4 22m13-20 3 20M12 4v3m0 4v3m0 4v3" stroke-dasharray="2 2"/>',
-  asphalt: '<path d="M6 2 3 22m15-20 3 20M12 3v4m0 4v3m0 4v3"/>',
-  bridge:
-    '<path d="M2 17h20M4 17V6m16 11V6M4 8c5 7 11 7 16 0M8 12v5m8-5v5M2 22c3-2 4 2 7 0s4 2 7 0 4 2 6 0"/>',
-  repair: '<path d="m5 21 10-10M14 3a6 6 0 0 0-3 8l3 3a6 6 0 0 0 8-8l-5 4-3-3 4-5z"/>',
-  reinforce: '<path d="m12 2 8 3v7c0 5-8 10-8 10S4 17 4 12V5zM8 12l3 3 5-6"/>',
-};
-const icon = (a: Action) =>
-  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[a]}</svg>`;
-const portrait = (id: string, color: string) => {
-  const old = id === 'anna' || id === 'nina',
-    boy = id === 'misha';
-  return `<svg class="portrait" viewBox="0 0 64 64" aria-hidden="true"><rect width="64" height="64" rx="18" fill="${color}"/><path d="M10 64q2-22 22-22t22 22" fill="${boy ? '#dfbb75' : old ? '#e5d7b4' : '#cbdac8'}"/><path d="M20 29q-4-21 12-21t12 21" fill="${old ? '#d5d3c0' : '#655444'}"/><path d="M19 28q0-15 13-15t13 15v9q-2 13-13 13T19 37z" fill="#ebc7a3"/><path d="M18 26q1-19 14-19t15 19q-10-2-14-10-4 9-15 10" fill="${old ? '#dddac9' : '#655444'}"/><path d="M25 31h2m10 0h2" stroke="#4d4b42" stroke-width="2.5" stroke-linecap="round"/><path d="M28 40q4 3 8 0" fill="none" stroke="#aa775e" stroke-width="1.5"/>${old ? '<path d="M21 29h9v6h-9zm13 0h9v6h-9zm-4 2h4" fill="none" stroke="#6b7466" stroke-width="1.3"/>' : ''}</svg>`;
-};
-
 $('app').innerHTML = `
 <div id="play-screen" inert>
   <header class="topbar">
-    <button id="brand" class="brand" title="Открыть главное меню"><span class="brand-mark">≋</span><span>Мост между нами<small>Берёзовка · семь дней добрых перемен</small></span></button>
+    <button id="brand" class="brand" title="Открыть главное меню"><span class="brand-mark">${bridgeMark}</span><span>Мост между нами<small>Берёзовка · дороги, которые нас связывают</small></span></button>
     <div class="top-actions"><span id="save-status" role="status"></span><button id="sound" class="quiet" aria-label="Включить звук"></button><label class="volume" title="Громкость звуков">Громкость<input id="volume" aria-label="Громкость звуков" type="range" min="0" max="100" step="5" value="${volume * 100}"></label><button id="help" class="quiet">Правила</button><button id="menu-button" class="quiet">Меню</button></div>
   </header>
   <main class="layout">
     <section class="world" aria-label="Карта и строительство">
       <div class="stats" id="stats"></div>
-      <div class="map-header"><span>БЕРЁЗОВКА <i> / река Сосновка</i></span><span id="weather"></span></div>
+      <div class="map-header"><span>ПЛАН БЕРЁЗОВКИ <i> / река Сосновка</i></span><span id="weather"></span></div>
       <div class="map-frame"><div id="map"></div><div class="map-controls"><button id="zoom-out" title="Отдалить карту" aria-label="Отдалить карту">−</button><button id="zoom-reset" title="Показать всю карту">Вся карта</button><button id="zoom-in" title="Приблизить карту" aria-label="Приблизить карту">+</button></div></div>
-      <div class="map-caption"><span id="hover-note">Входы зданий отмечены светлым. Красное — повреждения.</span><span>Стрелки · выбор клетки / Enter · действие</span></div>
-      <div class="build-heading"><span>Дороги для людей</span><button id="undo" class="text-button">↶ Отменить <kbd>Ctrl Z</kbd></button></div>
+      <div class="map-caption"><span id="hover-note">Светлая метка — вход · красный участок — нужен ремонт</span><span>Стрелки · выбор клетки / Enter · действие</span></div>
+      <div class="build-heading"><span>Строительство</span><button id="undo" class="text-button">↶ Отменить <kbd>Ctrl Z</kbd></button></div>
       <div class="tools" id="tools">${(Object.keys(ACTION_LABELS) as Action[]).map((a, i) => `<button class="tool" data-tool="${a}" title="${ACTION_LABELS[a]} · клавиша ${i + 1}">${icon(a)}<span>${['Грунт', 'Асфальт', 'Мост', 'Ремонт', 'Укрепить'][i]}<small>${['18', '24 / 34', '140 / 220', '16 / 58', '52'][i]} ед.</small></span><kbd>${i + 1}</kbd></button>`).join('')}</div>
       <div id="selection" class="selection" aria-live="polite"></div>
     </section>
@@ -114,8 +99,8 @@ $('app').innerHTML = `
   </main>
 </div>
 <div id="menu" class="menu-overlay" role="dialog" aria-modal="true" aria-labelledby="menu-title">
-  <div class="menu-landscape" aria-hidden="true"><div class="sun"></div><div class="hill hill-back"></div><div class="hill"></div><div class="river"></div><div class="menu-bridge"><i></i><i></i><i></i><i></i></div><div class="menu-house house-one"></div><div class="menu-house house-two"></div><div class="menu-tree tree-one"></div><div class="menu-tree tree-two"></div><span class="landscape-caption">БЕРЁЗОВКА / НА ДВУХ БЕРЕГАХ</span></div>
-  <div class="menu-card"><div class="edition">СОЦИАЛЬНАЯ СТРАТЕГИЯ · СЕМЬ ИГРОВЫХ ДНЕЙ</div><span class="menu-symbol">≋</span><h1 id="menu-title">Мост<br>между нами<span>.</span></h1><p class="menu-lead">У каждого пути есть человек,<br>которому он нужен.</p><p class="menu-description">Верните детям дорогу к школе, помогите соседям встретиться и оставьте после себя поселение, в котором стало ближе жить.</p><button id="new-game" class="primary">Начать новую историю <span>→</span></button><button id="continue" class="secondary hidden">Продолжить неделю</button><div class="menu-links"><button id="menu-help" class="text-button">Как играть</button><button id="about" class="text-button">Об игре</button></div><p id="save-hint" class="save-hint"></p><div class="menu-foot">Одна река. Два берега. Общее дело.<small>Локальная игра · без регистрации · без интернета</small></div></div>
+  <div class="menu-landscape" aria-hidden="true"><span class="menu-location">БЕРЁЗОВКА<br><small>на реке Сосновке</small></span><div class="menu-note">Два берега.<br>Одна деревня.</div><span class="landscape-caption">ЛЕТО · НАЧАЛО НОВОЙ НЕДЕЛИ</span></div>
+  <div class="menu-card"><div class="edition">НЕБОЛЬШАЯ СТРАТЕГИЯ О БОЛЬШОМ ОБЩЕМ ДЕЛЕ</div><span class="menu-symbol">${bridgeMark}</span><h1 id="menu-title">Мост<br>между нами</h1><p class="menu-lead">До школы, до дома,<br>друг до друга.</p><p class="menu-description">Река делит Берёзовку надвое. У вас семь дней, общий бюджет и соседи, которым нужна дорога. Каким будет их путь — решать вам.</p><div class="menu-feature-list"><span>7 дней</span><span>2 берега</span><span>4 истории</span></div><button id="new-game" class="primary">Начать неделю <span>→</span></button><button id="continue" class="secondary hidden">Продолжить неделю</button><div class="menu-links"><button id="menu-help" class="text-button">Как играть</button><button id="about" class="text-button">Об игре</button></div><p id="save-hint" class="save-hint"></p><div class="menu-foot">У каждой дороги — своя история.<small>Мост между нами · Берёзовка</small></div></div>
 </div>
 <dialog id="dialog"><div id="dialog-content"></div></dialog><div id="toast" role="status"></div>`;
 
@@ -165,6 +150,7 @@ function modal(content: string) {
 const closeDialog = () => $<HTMLDialogElement>('dialog').close();
 function showMenu() {
   playing = false;
+  document.body.classList.add('menu-open');
   $('play-screen').inert = true;
   $('menu').classList.remove('hidden');
   $('continue').classList.toggle('hidden', !readSave());
@@ -174,6 +160,7 @@ function showMenu() {
 }
 function begin(next: GameState) {
   buildFeedback = '';
+  document.body.classList.remove('menu-open');
   state = next;
   playing = true;
   mode = null;
@@ -233,7 +220,7 @@ function render() {
     tasks = getTasks(state);
   const goal = tasks.find((t) => t.startDay === state.day)!;
   const route = getRoute(state, home, service);
-  $('day-number').textContent = `ГЛАВА ${state.day} ИЗ 7`;
+  $('day-number').textContent = `ДЕНЬ ${String(state.day).padStart(2, '0')} / 07`;
   $('day-title').textContent = day.title;
   $('day-subtitle').textContent = day.subtitle;
   $('week').innerHTML = DAYS.map(
@@ -241,7 +228,7 @@ function render() {
       `<span title="День ${i + 1}: ${d.title}" class="${i + 1 === state.day ? 'current' : i + 1 < state.day ? 'past' : ''}">${i + 1}</span>`,
   ).join('');
   $('stats').innerHTML =
-    `<div class="stat budget"><span>На общее дело</span><strong>${state.budget}<small> / ${INITIAL_BUDGET}</small></strong></div><div class="stat" title="Доля кварталов, связанных с каждым открытым учреждением"><span>Доступные пути</span><strong>${m.connected}<small> / ${m.total}</small></strong></div><div class="stat" title="Среднее по существующим маршрутам; недоступные пары видны в соседнем показателе"><span>Средний путь</span><strong>${m.averageTime?.toFixed(1) ?? '—'}<small> усл. ед.</small></strong></div><div class="stat" title="55% доступность + 30% скорость + 15% выполненные обещания"><span>Благополучие</span><strong>${m.wellbeing}<small> / 100</small></strong></div>`;
+    `<div class="stat budget"><span>Бюджет деревни</span><strong>${state.budget}<small> / ${INITIAL_BUDGET}</small></strong></div><div class="stat" title="Доля кварталов, связанных с каждым открытым учреждением"><span>Доступные пути</span><strong>${m.connected}<small> / ${m.total}</small></strong></div><div class="stat" title="Среднее по существующим маршрутам; недоступные пары видны в соседнем показателе"><span>Средний путь</span><strong>${m.averageTime?.toFixed(1) ?? '—'}<small> усл. ед.</small></strong></div><div class="stat" title="55% доступность + 30% скорость + 15% выполненные обещания"><span>Благополучие</span><strong>${m.wellbeing}<small> / 100</small></strong></div>`;
   $('weather').textContent =
     `${getWeather(state) === 'rain' ? '☂ Дождь · грунт медленнее' : '☀ Ясно'} · мостов ${activeBridges(state)}`;
   $('day-story').textContent = day.story;
@@ -282,7 +269,7 @@ function render() {
     `<b>${route.time === null ? 'Пока нет проезда' : `${route.time.toFixed(1)} <small>усл. ед. времени</small>`}</b><span>${route.path.length ? `${route.path.length - 1} клеток пути` : ''}</span>`;
   $('route-explanation').textContent = explainRoute(state, home, service);
   $('advisor').textContent = getAdvisor(state);
-  $('save-status').textContent = storageWarning || 'Прогресс сохранён на устройстве';
+  $('save-status').textContent = storageWarning || 'Сохранено';
   $('save-status').classList.toggle('warning', !!storageWarning);
   $<HTMLButtonElement>('undo').disabled = !playing || !state.history.length || state.finished;
   $<HTMLButtonElement>('end-day').disabled = !playing || state.finished;
@@ -458,7 +445,7 @@ document.addEventListener('click', (event) => {
       break;
     case 'about':
       modal(
-        '<span class="eyebrow">Мост между нами · версия 2</span><h2>Одна река. Общее дело.</h2><p>Авторская социальная стратегия о заботе, соседстве и сельской инфраструктуре. Берёзовка и её жители вымышлены.</p><p>Дороги, бюджет, погода и мосты влияют на реальные пути по игровому графу. Советник использует правила и расчёт маршрутов. Это классический алгоритм, а не нейросеть.</p><p>Вся графика и звуки созданы программно для игры. Внешние API, регистрация и интернет для прохождения не нужны. Лицензии Phaser и EventEmitter3 включены в поставку.</p><button class="primary" data-close>Продолжить</button>',
+        '<span class="eyebrow">Мост между нами · версия 2</span><h2>Одна река. Общее дело.</h2><p>Авторская социальная стратегия о заботе, соседстве и сельской инфраструктуре. Берёзовка и её жители вымышлены.</p><p>У каждого жителя свой маршрут. Дороги, мосты и погода определяют, удастся ли попасть в школу, медпункт или мастерскую. Семь дней — семь обещаний деревне.</p><p>Вся графика и звуки созданы программно для игры. Внешние API, регистрация и интернет для прохождения не нужны. Лицензии Phaser и EventEmitter3 включены в поставку.</p><button class="primary" data-close>Продолжить</button>',
       );
       break;
     case 'build':

@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 640" shape-rendering="crispEdges">
+  <title>Берёзовка — деревня на двух берегах</title>
+  <desc>Оригинальная пиксельная панорама: медленная река, деревянный мост, огороды и деревенские дома.</desc>
+  <defs>
+    <pattern id="meadow" width="64" height="64" patternUnits="userSpaceOnUse">
+      <rect width="64" height="64" fill="#99a56b"/>
+      <path d="M8 14h8v2H8zm36 28h6v2h-6zM24 56h4v2h-4z" fill="#acb578"/>
+      <path d="M42 12h4v2h-4zM14 44h2v4h-2z" fill="#84965f"/>
+    </pattern>
+    <pattern id="crop" width="12" height="12" patternUnits="userSpaceOnUse">
+      <rect width="12" height="12" fill="#a49260"/>
+      <path d="M0 2h12v3H0z" fill="#c9b679"/>
+      <path d="M2 8h3v3H2zm6 0h2v3H8z" fill="#788b4d"/>
+    </pattern>
+    <g id="pine">
+      <path d="M8 34h26v6H8z" fill="#6c8257"/>
+      <path d="M18 24h6v14h-6z" fill="#735b40"/>
+      <path d="M16 0h10v8h4v8h6v10h4v6H2v-6h4V16h6V8h4z" fill="#365c43"/>
+      <path d="M16 2h8v8h4v8h4v8H8v-8h4v-8h4z" fill="#507750"/>
+      <path d="M16 4h6v8h4v6H14v-6h2z" fill="#6d8d58"/>
+      <path d="M10 26h8v4h-8zm18-6h4v6h-4z" fill="#446b48"/>
+    </g>
+    <g id="birch">
+      <path d="M6 34h30v6H6z" fill="#718456"/>
+      <path d="M18 18h6v20h-6z" fill="#f1e7c7"/>
+      <path d="M18 24h4v2h-4zm2 8h4v2h-4z" fill="#6e7256"/>
+      <path d="M10 2h18v4h6v6h4v12h-6v6H8v-6H2V12h4V6h4z" fill="#607c44"/>
+      <path d="M10 2h18v4h4v12h-6v6H6v-6H2v-6h4V6h4z" fill="#92a65b"/>
+      <path d="M12 4h12v4H12zm-4 8h8v6H8z" fill="#b9bf72"/>
+      <path d="M26 18h8v6h-8zM8 24h8v4H8z" fill="#76934e"/>
+    </g>
+    <g id="house">
+      <path d="M6 30h38v8H6z" fill="#7c8658"/>
+      <path d="M8 14h32v20H8z" fill="#e4cc9b"/>
+      <path d="M34 14h6v20h-6z" fill="#b6996e"/>
+      <path d="M6 30h36v4H6z" fill="#736c4e"/>
+      <path d="M2 14h42v6H2z" fill="#714b39"/>
+      <path d="M6 8h34v8H6zM12 4h22v6H12zM18 0h10v6H18z" fill="#ad714c"/>
+      <path d="M12 6h22v2H12zm-4 6h26v2H8z" fill="#c48c58"/>
+      <path d="M12 22h8v8h-8zm16 0h8v8h-8z" fill="#36544e"/>
+      <path d="M14 24h4v4h-4zm16 0h4v4h-4z" fill="#f0d88e"/>
+      <path d="M22 24h4v10h-4z" fill="#7b6244"/>
+      <path d="M34 0h4v10h-4z" fill="#6d6350"/>
+      <path d="M32 0h8v2h-8z" fill="#dbceaa"/>
+    </g>
+    <g id="blue-house">
+      <path d="M6 32h42v8H6z" fill="#788355"/>
+      <path d="M8 16h36v20H8z" fill="#e7d5a8"/>
+      <path d="M38 18h6v18h-6z" fill="#b8aa81"/>
+      <path d="M4 14h44v6H4z" fill="#344f49"/>
+      <path d="M8 8h36v8H8zM14 4h24v6H14zM20 0h12v6H20z" fill="#4e7772"/>
+      <path d="M14 6h24v2H14zm-4 6h28v2H10z" fill="#71958b"/>
+      <path d="M12 24h8v8h-8zm20 0h8v8h-8z" fill="#34564f"/>
+      <path d="M14 26h4v4h-4zm20 0h4v4h-4z" fill="#f1dca3"/>
+      <path d="M24 24h6v12h-6z" fill="#7f6849"/>
+      <path d="M22 34h10v4H22z" fill="#b5a37a"/>
+    </g>
+    <g id="fence">
+      <path d="M0 4h64v2H0zm0 6h64v2H0z" fill="#a58d62"/>
+      <path d="M2 0h3v16H2zm14 0h3v16h-3zm14 0h3v16h-3zm14 0h3v16h-3zm14 0h3v16h-3z" fill="#d5c18d"/>
+    </g>
+    <g id="flower">
+      <path d="M2 6h2v4H2z" fill="#71894c"/>
+      <path d="M0 2h2V0h2v2h2v2H4v2H2V4H0z" fill="#e4d59a"/>
+    </g>
+  </defs>
+  <rect width="768" height="640" fill="url(#meadow)"/>
+  <path d="M0 0h242v16h-38v20h-60v20H92v30H0zM620 0h148v178h-26v-30h-38v-44h-44V62h-40zM0 478h32v28h36v30h34v42h42v62H0zM644 518h42v-32h38v-26h44v180H612v-50h32z" fill="#87985e"/>
+  <path d="M418 0h130v54h-18v66h-32v68h-34v66h-18v74h8v80h34v62h26v76h-10v94H348v-92h6v-62h-20v-62h-18v-72h-4v-90h24v-68h32v-70h32V58h18z" fill="#c5bd89"/>
+  <path d="M426 0h114v50h-20v66h-30v68h-34v66h-20v80h10v82h34v62h24v72h-10v94H358v-92h8v-68h-20v-60h-20v-68h-4v-88h24v-68h32v-70h32V60h16z" fill="#729c88"/>
+  <path d="M438 0h92v46h-20v66h-30v68h-34v66h-20v88h10v84h34v62h24v66h-10v94H368v-92h8v-72h-20v-58h-20v-66h-4v-84h24v-68h32v-70h32V64h18z" fill="#568c91"/>
+  <path d="M476 0h30v44h-18v66h-28v70h-34v64h-18v88h10v84h32v66h16v70h-10v88h-38v-90h4v-66h-18v-64h-18v-66h-4v-88h22v-70h34v-68h28V46h10z" fill="#4e838a"/>
+  <path d="M448 30h26v2h-26zm54 36h20v2h-20zm-58 62h22v2h-22zm-42 66h26v2h-26zm-38 68h24v2h-24zm32 32h18v2h-18zm-50 90h28v2h-28zm76 52h24v2h-24zm-38 64h22v2h-22zm62 74h22v2h-22zm-54 64h24v2h-24z" fill="#8bb5af"/>
+  <path d="M450 78h14v2h-14zm-64 134h14v2h-14zm-38 100h14v2h-14zm14 126h16v2h-16zm84 82h16v2h-16zm-54 72h14v2h-14z" fill="#75a5a1"/>
+  <!-- Two walking lanes meet on the old wooden crossing. -->
+  <path d="M0 336h170v-24h74v24h86v26H226v-24h-48v24H0zm438 0h124v-70h24v70h74v24H562v56h-24v-56H438z" fill="#a89664"/>
+  <path d="M0 340h174v-24h66v24h90v18H230v-24h-56v24H0zm438 4h132v-74h12v74h78v12H558v56h-16v-56H438z" fill="#d1bb86"/>
+  <path d="M320 344h126v30H320z" fill="#3b6667"/>
+  <path d="M314 334h138v32H314z" fill="#745c3d"/>
+  <path d="M314 338h138v22H314z" fill="#bc9865"/>
+  <path d="M320 338h2v22h-2zm10 0h2v22h-2zm10 0h2v22h-2zm10 0h2v22h-2zm10 0h2v22h-2zm10 0h2v22h-2zm10 0h2v22h-2zm10 0h2v22h-2zm10 0h2v22h-2zm10 0h2v22h-2zm10 0h2v22h-2zm10 0h2v22h-2zm10 0h2v22h-2z" fill="#927147"/>
+  <path d="M310 330h146v6H310z" fill="#e1c18a"/>
+  <path d="M310 360h146v6H310z" fill="#947046"/>
+  <path d="M312 326h6v14h-6zm32 0h6v14h-6zm32 0h6v14h-6zm32 0h6v14h-6zm38 0h6v14h-6z" fill="#d4af75"/>
+  <path d="M312 356h6v14h-6zm32 0h6v14h-6zm32 0h6v14h-6zm32 0h6v14h-6zm38 0h6v14h-6z" fill="#745b3c"/>
+  <!-- Gardens and yards, laid out as small inhabited places. -->
+  <path d="M84 414h118v80H84zM574 100h104v70H574zM576 448h98v76H576z" fill="#879359"/>
+  <path d="M90 420h106v68H90zM580 106h92v58H580zM582 454h86v64H582z" fill="url(#crop)"/>
+  <use href="#fence" x="84" y="492"/><use href="#fence" x="148" y="492"/>
+  <use href="#fence" x="574" y="164"/><use href="#fence" x="638" y="164"/>
+  <use href="#fence" x="576" y="520"/>
+  <path d="M88 290h94v24H88zM190 214h88v26h-88zM548 252h78v24h-78zM538 408h76v24h-76z" fill="#c2b482"/>
+  <use href="#house" x="96" y="260"/>
+  <use href="#house" x="144" y="274"/>
+  <use href="#blue-house" x="200" y="182"/>
+  <use href="#house" x="246" y="194"/>
+  <use href="#blue-house" x="548" y="220"/>
+  <use href="#house" x="592" y="236"/>
+  <use href="#house" x="546" y="378"/>
+  <use href="#blue-house" x="596" y="392"/>
+  <use href="#house" x="242" y="454"/>
+  <use href="#house" x="196" y="552"/>
+  <use href="#blue-house" x="638" y="558"/>
+  <!-- Birch groves are the village's namesake. -->
+  <use href="#pine" x="10" y="10"/><use href="#pine" x="44" y="0"/><use href="#birch" x="72" y="14"/>
+  <use href="#pine" x="112" y="0"/><use href="#pine" x="150" y="8"/><use href="#birch" x="180" y="0"/>
+  <use href="#pine" x="0" y="48"/><use href="#birch" x="34" y="58"/><use href="#pine" x="84" y="50"/>
+  <use href="#birch" x="8" y="106"/><use href="#pine" x="54" y="122"/><use href="#pine" x="12" y="156"/>
+  <use href="#pine" x="160" y="88"/><use href="#birch" x="196" y="104"/>
+  <use href="#birch" x="304" y="26"/><use href="#pine" x="340" y="44"/>
+  <use href="#pine" x="656" y="0"/><use href="#pine" x="698" y="12"/><use href="#birch" x="736" y="0"/>
+  <use href="#birch" x="670" y="42"/><use href="#pine" x="716" y="60"/><use href="#pine" x="746" y="94"/>
+  <use href="#birch" x="702" y="194"/><use href="#pine" x="738" y="216"/>
+  <use href="#birch" x="264" y="278"/><use href="#birch" x="246" y="370"/>
+  <use href="#pine" x="480" y="168"/><use href="#birch" x="510" y="186"/>
+  <use href="#birch" x="656" y="298"/><use href="#pine" x="702" y="284"/>
+  <use href="#pine" x="10" y="480"/><use href="#birch" x="44" y="512"/>
+  <use href="#pine" x="0" y="536"/><use href="#pine" x="74" y="552"/><use href="#birch" x="108" y="572"/>
+  <use href="#birch" x="18" y="596"/><use href="#pine" x="56" y="608"/>
+  <use href="#pine" x="284" y="532"/><use href="#birch" x="300" y="576"/>
+  <use href="#birch" x="694" y="482"/><use href="#pine" x="732" y="474"/>
+  <use href="#pine" x="704" y="530"/><use href="#birch" x="740" y="548"/>
+  <use href="#pine" x="682" y="600"/><use href="#pine" x="728" y="602"/><use href="#birch" x="612" y="604"/>
+  <use href="#flower" x="228" y="72"/><use href="#flower" x="240" y="80"/><use href="#flower" x="224" y="86"/>
+  <use href="#flower" x="144" y="378"/><use href="#flower" x="158" y="386"/><use href="#flower" x="150" y="394"/>
+  <use href="#flower" x="620" y="326"/><use href="#flower" x="632" y="316"/>
+  <use href="#flower" x="500" y="568"/><use href="#flower" x="512" y="576"/><use href="#flower" x="506" y="588"/>
+  <!-- A boat, a waterside bench, and neighbours crossing the river. -->
+  <path d="M430 270h14v28h-14z" fill="#345d63"/>
+  <path d="M430 266h10v26h-10zM432 262h6v4h-6zm0 30h6v4h-6z" fill="#9e754b"/>
+  <path d="M432 270h6v16h-6z" fill="#d0ad72"/>
+  <path d="M422 276h24v2h-24z" fill="#e4ce9b"/>
+  <path d="M290 262h4v14h-4zm16 0h4v14h-4z" fill="#6d6043"/>
+  <path d="M286 260h28v4h-28zm0 8h28v4h-28z" fill="#c4a374"/>
+  <path d="M276 340h6v6h-6z" fill="#e7c49a"/>
+  <path d="M274 346h10v8h-10z" fill="#446e72"/>
+  <path d="M276 354h2v4h-2zm4 0h2v4h-2z" fill="#3e4c3b"/>
+  <path d="M398 340h6v6h-6z" fill="#e7c49a"/>
+  <path d="M396 346h10v8h-10z" fill="#a86246"/>
+  <path d="M398 354h2v4h-2zm4 0h2v4h-2z" fill="#3e4c3b"/>
+</svg>

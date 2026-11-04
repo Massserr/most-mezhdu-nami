@@ -12,15 +12,15 @@ const CELL = 32;
 const WIDTH = 768;
 const HEIGHT = 512;
 const palette = {
-  grass: [0x8faa68, 0x93ae6c, 0x91ab68, 0x8ca665],
-  grassDark: 0x769452,
-  grassLight: 0xadc17c,
-  water: 0x5a9fba,
-  waterDeep: 0x4a8fae,
-  waterLight: 0x88c2ce,
-  sand: 0xcac28b,
-  road: 0x767e7d,
-  dirt: 0xbfa378,
+  grass: [0x9ba76c, 0x9da96e, 0x9aa66c, 0x99a56a],
+  grassDark: 0x7e925d,
+  grassLight: 0xb5bc7e,
+  water: 0x568c91,
+  waterDeep: 0x497c83,
+  waterLight: 0x89b4b0,
+  sand: 0xd3c798,
+  road: 0x696f66,
+  dirt: 0xc9af7e,
 };
 
 // Small deterministic integer hash: scenery never jumps after a building action.
@@ -127,23 +127,25 @@ export function createMap(parent: HTMLElement, callbacks: Callbacks) {
     }
     tree(x: number, y: number, variant: number) {
       const g = this.detail;
-      this.rect(g, 0x405c3a, x + 6, y + 24, 23, 5, 0.25);
+      this.rect(g, 0x344f3c, x + 6, y + 24, 23, 5, 0.24);
       this.rect(g, 0x68563d, x + 14, y + 16, 4, 13);
       if (variant % 3 === 0) {
         // A recognizable silver birch with a layered, block-cut crown.
-        this.rect(g, 0xe4dfbe, x + 14, y + 13, 4, 16);
-        this.rect(g, 0x777655, x + 14, y + 20, 2, 2);
-        this.rect(g, 0x777655, x + 16, y + 25, 2, 2);
-        this.rect(g, 0x527747, x + 6, y + 7, 22, 12);
-        this.rect(g, 0x648f4f, x + 3, y + 5, 22, 11);
-        this.rect(g, 0x80a958, x + 8, y + 1, 15, 10);
-        this.rect(g, 0x99b866, x + 10, y + 3, 7, 4);
+        this.rect(g, 0xeee4bf, x + 14, y + 13, 4, 16);
+        this.rect(g, 0x686c50, x + 14, y + 20, 2, 2);
+        this.rect(g, 0x686c50, x + 16, y + 25, 2, 2);
+        this.rect(g, 0x4f6f42, x + 6, y + 7, 22, 12);
+        this.rect(g, 0x708d4d, x + 3, y + 5, 22, 11);
+        this.rect(g, 0x9caf5b, x + 8, y + 1, 15, 10);
+        this.rect(g, 0xc2c778, x + 10, y + 3, 7, 4);
+        this.rect(g, 0x849d53, x + 3, y + 14, 5, 5);
       } else {
-        this.rect(g, 0x3e6746, x + 4, y + 13, 24, 9);
-        this.rect(g, 0x4c7c4c, x + 6, y + 7, 20, 13);
-        this.rect(g, 0x5f9254, x + 10, y + 2, 12, 14);
-        this.rect(g, 0x80a661, x + 11, y + 4, 6, 6);
-        this.rect(g, 0x3e6746, x + 22, y + 15, 5, 5);
+        this.rect(g, 0x345b43, x + 4, y + 13, 24, 9);
+        this.rect(g, 0x4b7550, x + 6, y + 7, 20, 13);
+        this.rect(g, 0x698c56, x + 10, y + 2, 12, 14);
+        this.rect(g, 0x91a968, x + 11, y + 4, 6, 6);
+        this.rect(g, 0x345b43, x + 22, y + 15, 5, 5);
+        this.rect(g, 0x567b4e, x + 7, y + 18, 8, 4);
       }
     }
     garden(x: number, y: number, variant: number, fenced = false) {
@@ -191,22 +193,22 @@ export function createMap(parent: HTMLElement, callbacks: Callbacks) {
       const house = building.kind === 'home';
       const wall = house
         ? hash % 2
-          ? 0xd3bd8c
-          : 0xc29470
+          ? 0xe1c595
+          : 0xc9a175
         : building.kind === 'work'
           ? 0xc5ab7d
           : 0xe5d8b8;
       const roof = house
         ? hash % 2
-          ? 0x95715b
-          : 0x92715c
+          ? 0xb17c50
+          : 0x9b6049
         : building.kind === 'school'
-          ? 0x517b83
+          ? 0x446c71
           : building.kind === 'clinic'
-            ? 0x6c8a7a
+            ? 0x56795d
             : building.kind === 'work'
-              ? 0x8d8258
-              : 0xb16b52;
+              ? 0x92784b
+              : 0xad5e46;
       this.rect(g, 0x40563e, x + 5, y + 22, 27, 8, 0.28);
       this.rect(g, 0x68644f, x + 3, y + 25, 26, 4);
       this.rect(g, wall, x + 4, y + 10, 24, 16);
@@ -218,7 +220,8 @@ export function createMap(parent: HTMLElement, callbacks: Callbacks) {
       this.rect(g, roof, x + 2, y + 6, 28, 6);
       this.rect(g, roof, x + 5, y + 3, 22, 6);
       this.rect(g, roof, x + 8, y + 1, 16, 5);
-      this.rect(g, 0xffffff, x + 8, y + 2, 16, 1, 0.18);
+      this.rect(g, 0xe2b47a, x + 8, y + 2, 16, 1);
+      this.rect(g, roof, x + 3, y + 11, 26, 1);
       this.rect(g, 0x3d5357, x + 7, y + 16, 6, 7);
       this.rect(g, 0xf5dfa0, x + 8, y + 17, 4, 5);
       this.rect(g, 0xf2e6c6, x + 10, y + 17, 1, 5);
@@ -271,12 +274,12 @@ export function createMap(parent: HTMLElement, callbacks: Callbacks) {
         }
         const label = this.add
           .text(building.kind === 'work' ? x - 3 * CELL : x + 16, y - 6, text, {
-            fontFamily: 'Arial, sans-serif',
-            fontSize: '12px',
+            fontFamily: 'Courier New, monospace',
+            fontSize: '11px',
             fontStyle: 'bold',
-            color: '#f9f4df',
-            backgroundColor: '#344f47',
-            padding: { x: 4, y: 3 },
+            color: '#f1e7c7',
+            backgroundColor: '#273e36',
+            padding: { x: 5, y: 3 },
           })
           .setOrigin(0.5, 1)
           .setDepth(5);
@@ -313,15 +316,19 @@ export function createMap(parent: HTMLElement, callbacks: Callbacks) {
         this.rect(g, palette.grass[hash % 4], x, y, CELL, CELL);
         if (tile.terrain === 'water') {
           this.rect(g, palette.water, x, y, CELL, CELL);
-          this.rect(g, palette.waterDeep, x + 5, y + (hash % 20), 21, 5, 0.45);
-          this.rect(g, palette.waterLight, x + 4 + (hash % 9), y + 8, 11, 2, 0.6);
-          this.rect(g, palette.waterLight, x + 16, y + 23, 9, 1, 0.55);
+          this.rect(g, palette.waterDeep, x + 5, y + (hash % 20), 21, 4, 0.5);
+          this.rect(g, palette.waterLight, x + 4 + (hash % 9), y + 8, 11, 2, 0.7);
+          this.rect(g, palette.waterLight, x + 16, y + 23, 9, 1, 0.65);
+          // A shallow, stepped edge softens the river without changing water cells.
+          const bank = 2 + (noise(tile.y, 21) % 3);
           if (tile.x === 11) {
-            this.rect(g, 0x729b7c, x, y, 4, CELL);
-            this.rect(g, 0xb4bc89, x, y, 2, CELL);
+            this.rect(g, 0x749d83, x, y, bank + 2, CELL);
+            this.rect(g, 0xd3c798, x, y, bank, CELL);
+            this.rect(g, 0xa5b075, x, y + 8, bank + 1, 12);
           } else if (tile.x === 12) {
-            this.rect(g, 0x729b7c, x + 28, y, 4, CELL);
-            this.rect(g, 0xb4bc89, x + 30, y, 2, CELL);
+            this.rect(g, 0x749d83, x + CELL - bank - 2, y, bank + 2, CELL);
+            this.rect(g, 0xd3c798, x + CELL - bank, y, bank, CELL);
+            this.rect(g, 0xa5b075, x + CELL - bank - 1, y + 17, bank + 1, 10);
           }
           if (tile.bridgeSite && !tile.road) {
             for (let dx = 7; dx < 32; dx += 8) this.rect(g, 0xf7e3a9, x + dx, y + 15, 4, 2, 0.65);
@@ -331,15 +338,7 @@ export function createMap(parent: HTMLElement, callbacks: Callbacks) {
           for (let i = 0; i < 3; i++) {
             const hx = 3 + (noise(tile.x, tile.y, i + 1) % 26);
             const hy = 3 + (noise(tile.y, tile.x, i + 17) % 26);
-            this.rect(
-              g,
-              i % 2 ? palette.grassDark : palette.grassLight,
-              x + hx,
-              y + hy,
-              3,
-              1,
-              0.65,
-            );
+            this.rect(g, i % 2 ? palette.grassDark : palette.grassLight, x + hx, y + hy, 3, 1, 0.5);
           }
           if (tile.x === 10 || tile.x === 13) {
             const dx = tile.x === 10 ? 29 : 0;
@@ -350,7 +349,19 @@ export function createMap(parent: HTMLElement, callbacks: Callbacks) {
             }
           }
         }
-        if (tile.road === 'bridge') {
+        if (tile.road === 'bridge' && tile.y === 8) {
+          // The central stone span is visibly different from a wooden crossing.
+          this.rect(g, 0x345d63, x, y + 12, CELL, 19, 0.5);
+          this.rect(g, 0x6b7467, x, y + 5, CELL, 23);
+          this.rect(g, 0xc4c2a0, x, y + 5, CELL, 4);
+          this.rect(g, 0x919b87, x, y + 10, CELL, 12);
+          this.rect(g, 0xd8d2af, x, y + 23, CELL, 4);
+          for (let dx = 1; dx < CELL; dx += 10) {
+            this.rect(g, 0xe8dfb9, x + dx, y + 3, 5, 7);
+            this.rect(g, 0x818d7b, x + dx, y + 23, 5, 7);
+          }
+          this.rect(g, 0xf1e7c7, x + 12, y + 15, 8, 2);
+        } else if (tile.road === 'bridge') {
           this.rect(g, 0x355963, x, y + 10, CELL, 19, 0.35);
           this.rect(g, 0x836a4c, x, y + 7, CELL, 20);
           this.rect(g, 0xc6a577, x, y + 9, CELL, 15);
@@ -372,7 +383,7 @@ export function createMap(parent: HTMLElement, callbacks: Callbacks) {
         } else if (tile.road) {
           const dirt = tile.road === 'dirt';
           const color = dirt ? palette.dirt : palette.road;
-          const edge = dirt ? 0xa98e68 : 0x626d68;
+          const edge = dirt ? 0xa48b60 : 0x4e5d50;
           const left = roadAt(tile.x - 1, tile.y),
             right = roadAt(tile.x + 1, tile.y);
           const up = roadAt(tile.x, tile.y - 1),
@@ -472,9 +483,9 @@ export function createMap(parent: HTMLElement, callbacks: Callbacks) {
         this.labels.push(
           this.add
             .text(x, y, text, {
-              fontFamily: 'Arial, sans-serif',
+              fontFamily: 'Courier New, monospace',
               fontSize: '11px',
-              color: '#3f6047',
+              color: '#405c3c',
               fontStyle: 'bold',
               letterSpacing: 2,
             })
@@ -587,7 +598,7 @@ export function createMap(parent: HTMLElement, callbacks: Callbacks) {
     parent,
     width: WIDTH,
     height: HEIGHT,
-    backgroundColor: '#8faa68',
+    backgroundColor: '#9ba76c',
     pixelArt: true,
     roundPixels: true,
     antialias: false,
